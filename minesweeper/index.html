@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minesweeper</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #080a06;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Share Tech Mono', monospace;
+    color: #aadd44;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(150,220,50,0.012) 2px, rgba(150,220,50,0.012) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.8) 100%);
+    pointer-events: none;
+    z-index: 9;
+  }
+
+  .back-btn {
+    position: fixed;
+    top: 1rem; left: 1rem;
+    z-index: 50;
+    padding: 0.4rem 0.9rem;
+    background: transparent;
+    border: 1px solid rgba(150,220,50,0.3);
+    color: rgba(150,220,50,0.5);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .back-btn:hover {
+    border-color: #aadd44;
+    color: #aadd44;
+    box-shadow: 0 0 12px rgba(150,220,50,0.2);
+  }
+
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    letter-spacing: 0.3em;
+    color: #aadd44;
+    text-shadow: 0 0 20px #aadd44, 0 0 50px rgba(150,220,50,0.35);
+    margin-bottom: 0.5rem;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 0.7rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: rgba(150,220,50,0.5);
+  }
+  .top-bar span { color: #aadd44; }
+
+  .difficulty-btns {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .diff-btn {
+    padding: 0.3rem 0.9rem;
+    background: transparent;
+    border: 1px solid rgba(150,220,50,0.25);
+    color: rgba(150,220,50,0.4);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .diff-btn:hover, .diff-btn.active {
+    border-color: #aadd44;
+    color: #aadd44;
+    box-shadow: 0 0 10px rgba(150,220,50,0.2);
+  }
+
+  .canvas-wrap {
+    position: relative;
+    border: 1px solid rgba(150,220,50,0.2);
+    box-shadow: 0 0 30px rgba(150,220,50,0.08), inset 0 0 30px rgba(0,0,0,0.5);
+  }
+
+  canvas {
+    display: block;
+    cursor: crosshair;
+  }
+
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5,8,3,0.92);
+    backdrop-filter: blur(3px);
+    gap: 0.9rem;
+  }
+
+  #overlay h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    letter-spacing: 0.2em;
+    color: #aadd44;
+    text-shadow: 0 0 20px #aadd44;
+  }
+
+  #overlay p {
+    font-size: 0.7rem;
+    color: rgba(150,220,50,0.45);
+    letter-spacing: 0.08em;
+    text-align: center;
+    line-height: 1.8;
+    max-width: 280px;
+  }
+
+  .result-msg {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+  }
+  .result-msg.win  { color: #aadd44; text-shadow: 0 0 14px #aadd44; }
+  .result-msg.lose { color: #ff4444; text-shadow: 0 0 14px #ff4444; }
+
+  button {
+    margin-top: 0.3rem;
+    padding: 0.6rem 2rem;
+    background: transparent;
+    border: 1px solid #aadd44;
+    color: #aadd44;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 10px rgba(150,220,50,0.15);
+  }
+  button:hover {
+    background: rgba(150,220,50,0.08);
+    box-shadow: 0 0 22px rgba(150,220,50,0.35);
+    transform: scale(1.04);
+  }
+
+  .hint {
+    font-size: 0.6rem;
+    color: rgba(150,220,50,0.25);
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="../index.html">◀ ARCADE</a>
+
+<h1>MINESWEEPER</h1>
+
+<div class="top-bar">
+  MINES <span id="mineCount">—</span>
+  &nbsp;|&nbsp;
+  FLAGS <span id="flagCount">0</span>
+  &nbsp;|&nbsp;
+  TIME <span id="timerEl">0</span>s
+</div>
+
+<div class="difficulty-btns">
+  <button class="diff-btn active" data-diff="easy">EASY</button>
+  <button class="diff-btn" data-diff="medium">MEDIUM</button>
+  <button class="diff-btn" data-diff="hard">HARD</button>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="c"></canvas>
+  <div id="overlay">
+    <h2>MINESWEEPER</h2>
+    <p>Left click to reveal.<br>Right click to flag a mine.<br>Clear the field to win.</p>
+    <div class="result-msg" id="resultMsg"></div>
+    <button id="startBtn">START GAME</button>
+    <div class="hint">First click is always safe.</div>
+  </div>
+</div>
+
+<script>
+const canvas   = document.getElementById('c');
+const ctx      = canvas.getContext('2d');
+const overlay  = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+const mineCountEl = document.getElementById('mineCount');
+const flagCountEl = document.getElementById('flagCount');
+const timerEl     = document.getElementById('timerEl');
+const resultMsg   = document.getElementById('resultMsg');
+
+// Difficulty presets
+const DIFFS = {
+  easy:   { cols: 9,  rows: 9,  mines: 10 },
+  medium: { cols: 14, rows: 14, mines: 30 },
+  hard:   { cols: 18, rows: 18, mines: 60 },
+};
+
+let diff = 'easy';
+let COLS, ROWS, MINES;
+let CELL; // calculated
+
+let grid, state = 'idle', firstClick, timerInterval, elapsed, flags;
+
+// Number colours
+const NUM_COLORS = ['','#44ccff','#aadd44','#ff8833','#cc44ff','#ff4444','#44ffdd','#ffffff','#aaaaaa'];
+
+function setDiff(d) {
+  diff = d;
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.toggle('active', b.dataset.diff === d));
+}
+
+document.querySelectorAll('.diff-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    setDiff(b.dataset.diff);
+    if (state !== 'idle') resetGame();
+  });
+});
+
+function calcSize() {
+  const { cols, rows } = DIFFS[diff];
+  const maxW = Math.min(window.innerWidth  * 0.92, 560);
+  const maxH = Math.min(window.innerHeight * 0.62, 560);
+  CELL = Math.floor(Math.min(maxW / cols, maxH / rows));
+  CELL = Math.max(CELL, 22);
+  canvas.width  = CELL * cols;
+  canvas.height = CELL * rows;
+}
+
+function initGame() {
+  const cfg = DIFFS[diff];
+  COLS = cfg.cols; ROWS = cfg.rows; MINES = cfg.mines;
+  calcSize();
+
+  grid = [];
+  for (let r = 0; r < ROWS; r++) {
+    grid[r] = [];
+    for (let c = 0; c < COLS; c++) {
+      grid[r][c] = { mine: false, revealed: false, flagged: false, adj: 0 };
+    }
+  }
+
+  flags = 0;
+  elapsed = 0;
+  firstClick = true;
+  clearInterval(timerInterval);
+  mineCountEl.textContent = MINES;
+  flagCountEl.textContent = 0;
+  timerEl.textContent = 0;
+  resultMsg.textContent = '';
+  resultMsg.className = 'result-msg';
+}
+
+function placeMines(safeR, safeC) {
+  let placed = 0;
+  while (placed < MINES) {
+    const r = Math.floor(Math.random() * ROWS);
+    const c = Math.floor(Math.random() * COLS);
+    if (grid[r][c].mine) continue;
+    if (Math.abs(r - safeR) <= 1 && Math.abs(c - safeC) <= 1) continue;
+    grid[r][c].mine = true;
+    placed++;
+  }
+  // Calculate adjacency
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (grid[r][c].mine) continue;
+      let count = 0;
+      eachNeighbour(r, c, (nr, nc) => { if (grid[nr][nc].mine) count++; });
+      grid[r][c].adj = count;
+    }
+  }
+}
+
+function eachNeighbour(r, c, fn) {
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) fn(nr, nc);
+    }
+  }
+}
+
+function reveal(r, c) {
+  const cell = grid[r][c];
+  if (cell.revealed || cell.flagged) return;
+  cell.revealed = true;
+
+  if (cell.mine) {
+    // Boom
+    revealAllMines();
+    endGame(false);
+    return;
+  }
+
+  if (cell.adj === 0) {
+    eachNeighbour(r, c, (nr, nc) => reveal(nr, nc));
+  }
+}
+
+function revealAllMines() {
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (grid[r][c].mine) grid[r][c].revealed = true;
+}
+
+function checkWin() {
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++) {
+      const cell = grid[r][c];
+      if (!cell.mine && !cell.revealed) return false;
+    }
+  return true;
+}
+
+function endGame(won) {
+  state = won ? 'won' : 'lost';
+  clearInterval(timerInterval);
+  draw();
+
+  setTimeout(() => {
+    resultMsg.textContent = won ? '✓ FIELD CLEARED' : '✕ DETONATED';
+    resultMsg.className   = 'result-msg ' + (won ? 'win' : 'lose');
+    startBtn.textContent  = 'PLAY AGAIN';
+    overlay.style.display = 'flex';
+  }, won ? 300 : 600);
+}
+
+// ── Draw ──
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      drawCell(r, c);
+    }
+  }
+}
+
+function drawCell(r, c) {
+  const cell = grid[r][c];
+  const x = c * CELL, y = r * CELL;
+  const pad = 1;
+
+  // Background
+  if (cell.revealed) {
+    if (cell.mine) {
+      ctx.fillStyle = 'rgba(255,40,40,0.25)';
+    } else {
+      ctx.fillStyle = 'rgba(150,220,50,0.06)';
+    }
+  } else {
+    ctx.fillStyle = 'rgba(150,220,50,0.1)';
+  }
+  ctx.fillRect(x + pad, y + pad, CELL - pad*2, CELL - pad*2);
+
+  // Border
+  ctx.strokeStyle = cell.revealed
+    ? 'rgba(150,220,50,0.1)'
+    : 'rgba(150,220,50,0.2)';
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(x + pad, y + pad, CELL - pad*2, CELL - pad*2);
+
+  const cx = x + CELL / 2;
+  const cy = y + CELL / 2;
+  const fs = Math.max(CELL * 0.42, 11);
+
+  if (cell.revealed) {
+    if (cell.mine) {
+      // Mine
+      ctx.shadowColor = '#ff4444';
+      ctx.shadowBlur  = 12;
+      ctx.fillStyle   = '#ff4444';
+      ctx.beginPath();
+      ctx.arc(cx, cy, CELL * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+      // Spikes
+      ctx.strokeStyle = '#ff6666';
+      ctx.lineWidth   = 1.2;
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const r1 = CELL * 0.22, r2 = CELL * 0.34;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+        ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+    } else if (cell.adj > 0) {
+      ctx.font        = `bold ${fs}px 'Share Tech Mono', monospace`;
+      ctx.textAlign   = 'center';
+      ctx.textBaseline= 'middle';
+      ctx.fillStyle   = NUM_COLORS[cell.adj] || '#ffffff';
+      ctx.shadowColor = NUM_COLORS[cell.adj] || '#ffffff';
+      ctx.shadowBlur  = 8;
+      ctx.fillText(cell.adj, cx, cy + 1);
+      ctx.shadowBlur  = 0;
+    }
+  } else if (cell.flagged) {
+    // Flag
+    ctx.shadowColor = '#ff8833';
+    ctx.shadowBlur  = 10;
+    ctx.fillStyle   = '#ff8833';
+    ctx.font        = `${fs}px serif`;
+    ctx.textAlign   = 'center';
+    ctx.textBaseline= 'middle';
+    ctx.fillText('⚑', cx, cy + 1);
+    ctx.shadowBlur  = 0;
+  } else {
+    // Unrevealed — subtle dot
+    ctx.fillStyle = 'rgba(150,220,50,0.12)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// Hover highlight
+let hoverR = -1, hoverC = -1;
+canvas.addEventListener('mousemove', e => {
+  if (state !== 'playing') return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const c = Math.floor(mx / CELL);
+  const r = Math.floor(my / CELL);
+  if (r !== hoverR || c !== hoverC) {
+    hoverR = r; hoverC = c;
+    draw();
+    if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+      const cell = grid[r][c];
+      if (!cell.revealed && !cell.flagged) {
+        ctx.strokeStyle = 'rgba(150,220,50,0.5)';
+        ctx.lineWidth   = 1;
+        ctx.strokeRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
+      }
+    }
+  }
+});
+
+canvas.addEventListener('click', e => {
+  if (state !== 'playing') return;
+  const rect = canvas.getBoundingClientRect();
+  const c = Math.floor((e.clientX - rect.left) / CELL);
+  const r = Math.floor((e.clientY - rect.top)  / CELL);
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+  const cell = grid[r][c];
+  if (cell.flagged || cell.revealed) return;
+
+  if (firstClick) {
+    firstClick = false;
+    placeMines(r, c);
+    timerInterval = setInterval(() => {
+      elapsed++;
+      timerEl.textContent = elapsed;
+    }, 1000);
+  }
+
+  reveal(r, c);
+
+  if (state === 'playing' && checkWin()) endGame(true);
+  draw();
+});
+
+canvas.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  if (state !== 'playing') return;
+  const rect = canvas.getBoundingClientRect();
+  const c = Math.floor((e.clientX - rect.left) / CELL);
+  const r = Math.floor((e.clientY - rect.top)  / CELL);
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+  const cell = grid[r][c];
+  if (cell.revealed) return;
+
+  cell.flagged = !cell.flagged;
+  flags += cell.flagged ? 1 : -1;
+  flagCountEl.textContent = flags;
+  draw();
+});
+
+// Touch: long press = flag
+let touchTimer = null;
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const rect  = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const c = Math.floor((touch.clientX - rect.left) / CELL);
+  const r = Math.floor((touch.clientY - rect.top)  / CELL);
+  touchTimer = setTimeout(() => {
+    touchTimer = null;
+    if (state !== 'playing') return;
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+    const cell = grid[r][c];
+    if (cell.revealed) return;
+    cell.flagged = !cell.flagged;
+    flags += cell.flagged ? 1 : -1;
+    flagCountEl.textContent = flags;
+    draw();
+  }, 400);
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  if (touchTimer !== null) {
+    clearTimeout(touchTimer);
+    touchTimer = null;
+    // Short tap = reveal
+    const rect  = canvas.getBoundingClientRect();
+    const touch = e.changedTouches[0];
+    const c = Math.floor((touch.clientX - rect.left) / CELL);
+    const r = Math.floor((touch.clientY - rect.top)  / CELL);
+    if (state !== 'playing') return;
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+    const cell = grid[r][c];
+    if (cell.flagged || cell.revealed) return;
+    if (firstClick) {
+      firstClick = false;
+      placeMines(r, c);
+      timerInterval = setInterval(() => { elapsed++; timerEl.textContent = elapsed; }, 1000);
+    }
+    reveal(r, c);
+    if (state === 'playing' && checkWin()) endGame(true);
+    draw();
+  }
+}, { passive: false });
+
+function resetGame() {
+  clearInterval(timerInterval);
+  initGame();
+  draw();
+  state = 'playing';
+  overlay.style.display = 'none';
+}
+
+startBtn.addEventListener('click', () => {
+  overlay.style.display = 'none';
+  initGame();
+  state = 'playing';
+  draw();
+});
+
+// Init idle display
+initGame();
+draw();
+</script>
+</body>
+</html>
