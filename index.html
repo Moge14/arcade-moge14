@@ -484,80 +484,6 @@ function lockSecsLeft() {
   return d.lockUntil > Date.now() ? Math.ceil((d.lockUntil - Date.now()) / 1000) : 0;
 }
 
-const pwInput    = document.getElementById('pwInput');
-const pwBtn      = document.getElementById('pwBtn');
-const pwError    = document.getElementById('pwError');
-const pwAttempts = document.getElementById('pwAttempts');
-
-function updateLockUI() {
-  const secs = lockSecsLeft();
-  if (secs > 0) {
-    pwInput.disabled = pwBtn.disabled = true;
-    pwError.textContent = '';
-    pwAttempts.innerHTML = `<span style="color:var(--red)">LOCKED — try again in ${secs}s</span>`;
-    setTimeout(updateLockUI, 1000);
-  } else {
-    pwInput.disabled = pwBtn.disabled = false;
-  }
-}
-
-function tryPassword() {
-  if (lockSecsLeft() > 0) return;
-  const val = pwInput.value.trim();
-  if (!val) return;
-
-  if (val === PASSWORD) {
-    pwInput.classList.add('success');
-    pwError.textContent = '';
-    pwAttempts.textContent = '';
-    saveAttempts({ count: 0, lockUntil: 0 });
-    login();
-    setTimeout(showLauncher, 500);
-  } else {
-    const d = getAttempts();
-    d.count++;
-    if (d.count >= MAX_ATTEMPTS) { d.lockUntil = Date.now() + LOCKOUT_MS; d.count = 0; }
-    saveAttempts(d);
-
-    pwInput.value = '';
-    pwInput.classList.remove('shake');
-    void pwInput.offsetWidth;
-    pwInput.classList.add('shake');
-    setTimeout(() => pwInput.classList.remove('shake'), 400);
-
-    if (lockSecsLeft() > 0) {
-      pwError.textContent = 'TOO MANY ATTEMPTS';
-      updateLockUI();
-    } else {
-      const rem = MAX_ATTEMPTS - d.count;
-      pwError.textContent = 'INVALID CODE';
-      pwAttempts.textContent = `${rem} attempt${rem !== 1 ? 's' : ''} remaining`;
-    }
-  }
-}
-
-pwBtn.addEventListener('click', tryPassword);
-pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPassword(); });
-
-function showLauncher() {
-  document.getElementById('passwordScreen').style.display = 'none';
-  const el = document.getElementById('launcher');
-  el.style.display = 'block';
-  el.classList.add('fade-in');
-  buildGrid();
-}
-
-// Boot — if already authed, show launcher instantly (no fade delay)
-if (isAuthed()) {
-  document.getElementById('passwordScreen').style.display = 'none';
-  const el = document.getElementById('launcher');
-  el.style.display = 'block';
-  buildGrid();
-} else {
-  updateLockUI();
-  pwInput.focus();
-}
-
 // ── Game registry ──
 const GAMES = [
   {
@@ -627,6 +553,77 @@ function buildGrid() {
   });
 
   availCount.textContent = available;
+}
+
+function showLauncher() {
+  document.getElementById('passwordScreen').style.display = 'none';
+  const el = document.getElementById('launcher');
+  el.style.display = 'block';
+  buildGrid();
+}
+
+// ── Password UI ──
+const pwInput    = document.getElementById('pwInput');
+const pwBtn      = document.getElementById('pwBtn');
+const pwError    = document.getElementById('pwError');
+const pwAttempts = document.getElementById('pwAttempts');
+
+function updateLockUI() {
+  const secs = lockSecsLeft();
+  if (secs > 0) {
+    pwInput.disabled = pwBtn.disabled = true;
+    pwError.textContent = '';
+    pwAttempts.innerHTML = `<span style="color:var(--red)">LOCKED — try again in ${secs}s</span>`;
+    setTimeout(updateLockUI, 1000);
+  } else {
+    pwInput.disabled = pwBtn.disabled = false;
+  }
+}
+
+function tryPassword() {
+  if (lockSecsLeft() > 0) return;
+  const val = pwInput.value.trim();
+  if (!val) return;
+
+  if (val === PASSWORD) {
+    pwInput.classList.add('success');
+    pwError.textContent = '';
+    pwAttempts.textContent = '';
+    saveAttempts({ count: 0, lockUntil: 0 });
+    login();
+    setTimeout(showLauncher, 500);
+  } else {
+    const d = getAttempts();
+    d.count++;
+    if (d.count >= MAX_ATTEMPTS) { d.lockUntil = Date.now() + LOCKOUT_MS; d.count = 0; }
+    saveAttempts(d);
+
+    pwInput.value = '';
+    pwInput.classList.remove('shake');
+    void pwInput.offsetWidth;
+    pwInput.classList.add('shake');
+    setTimeout(() => pwInput.classList.remove('shake'), 400);
+
+    if (lockSecsLeft() > 0) {
+      pwError.textContent = 'TOO MANY ATTEMPTS';
+      updateLockUI();
+    } else {
+      const rem = MAX_ATTEMPTS - d.count;
+      pwError.textContent = 'INVALID CODE';
+      pwAttempts.textContent = `${rem} attempt${rem !== 1 ? 's' : ''} remaining`;
+    }
+  }
+}
+
+pwBtn.addEventListener('click', tryPassword);
+pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPassword(); });
+
+// ── Boot ──
+if (isAuthed()) {
+  showLauncher();
+} else {
+  updateLockUI();
+  pwInput.focus();
 }
 </script>
 </body>
