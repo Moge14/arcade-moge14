@@ -401,6 +401,99 @@ main { max-width: 1100px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
 }
 .game-card:hover .card-play { opacity: 1; background: rgba(0,0,0,0.45); }
 
+/* ── BLOG / DEVLOG ── */
+.devlog-section {
+  margin-top: 4rem;
+}
+
+.devlog-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.devlog-post {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 1.1rem 1.4rem 1.1rem 1.3rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 1.4rem;
+  align-items: start;
+  animation: cardIn 0.4s ease both;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.devlog-post::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--post-accent, var(--green));
+  box-shadow: 0 0 12px var(--post-accent, var(--green));
+  opacity: 0.7;
+}
+
+.devlog-post:hover {
+  border-color: rgba(0,255,136,0.25);
+  box-shadow: 0 0 18px rgba(0,255,136,0.06);
+}
+
+.devlog-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  min-width: 80px;
+  padding-top: 0.1rem;
+}
+
+.devlog-date {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: rgba(0,255,136,0.3);
+  white-space: nowrap;
+}
+
+.devlog-tag {
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+  padding: 2px 6px;
+  border: 1px solid var(--post-accent, var(--green));
+  color: var(--post-accent, var(--green));
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.devlog-content {}
+
+.devlog-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(0,255,136,0.9);
+  margin-bottom: 0.45rem;
+  line-height: 1.4;
+}
+
+.devlog-body {
+  font-size: 0.67rem;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.38);
+  line-height: 1.75;
+}
+
+.devlog-empty {
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  color: rgba(0,255,136,0.2);
+  text-align: center;
+  padding: 2rem 0;
+}
+
 footer {
   text-align: center; padding: 1.5rem;
   font-size: 0.6rem; letter-spacing: 0.3em;
@@ -454,6 +547,12 @@ footer {
   <main>
     <div class="section-label">// AVAILABLE NOW</div>
     <div class="games-grid" id="grid"></div>
+
+    <!-- ── DEVLOG / BLOG ── -->
+    <div class="devlog-section">
+      <div class="section-label">// DEVLOG</div>
+      <div class="devlog-grid" id="devlog"></div>
+    </div>
   </main>
 
   <footer>ARCADE v1.0 &nbsp;·&nbsp; BUILT WITH HTML &nbsp;·&nbsp; HOSTED ON GITHUB PAGES</footer>
@@ -465,6 +564,52 @@ footer {
 // ════════════════════════════════════
 const PASSWORD = 'arcade2024';
 // ════════════════════════════════════
+
+
+// ════════════════════════════════════════════════════════════════
+//  📰  DEVLOG POSTS
+//  Add a new {} entry to the top of this array to post something.
+//
+//  Fields:
+//    date    — displayed as-is, e.g. "2025-07-09" or "JULY 2025"
+//    tag     — short label like "UPDATE", "NEW GAME", "HOTFIX", etc.
+//    title   — headline for the post
+//    body    — the full text (supports \n for line breaks)
+//    accent  — optional colour for the left bar + tag (CSS colour string)
+//              defaults to green if omitted
+// ════════════════════════════════════════════════════════════════
+const POSTS = [
+  {
+    date:   '2025-07-09',
+    tag:    'NEW GAME',
+    title:  'Fruit Slicer is now live!',
+    body:   'Swipe to slice flying fruit, dodge the bombs, and chase a high score. Available now from the launcher.',
+    accent: '#88ff44',
+  },
+  {
+    date:   '2025-07-05',
+    tag:    'COMING SOON',
+    title:  'Tetris & Pong are in development',
+    body:   'Two classics are on the way. Tetris is being built from scratch with a ghost-piece and hold mechanic. Pong will support both 1-player (vs CPU) and 2-player on the same keyboard.',
+    accent: '#44aaff',
+  },
+  {
+    date:   '2025-06-28',
+    tag:    'UPDATE',
+    title:  'Minesweeper gets right-click flagging',
+    body:   'You can now right-click any unrevealed cell to plant a flag. A counter in the top bar tracks how many mines are left unflagged. Refresh the page to start a new board.',
+    accent: '#ff8833',
+  },
+  {
+    date:   '2025-06-20',
+    tag:    'LAUNCH',
+    title:  'Arcade is open!',
+    body:   'Snake, Breakout, Asteroids and Minesweeper are all live. More games dropping regularly — check back soon.',
+    accent: '#00ff88',
+  },
+];
+// ════════════════════════════════════════════════════════════════
+
 
 const STORAGE_KEY  = 'arcade_auth';
 const MAX_ATTEMPTS = 5;
@@ -521,23 +666,23 @@ const GAMES = [
     desc: 'The original. Two paddles. One ball. Pure reflex.',
     icon: '🏓', accent: '#ffdd00',
     url: 'pong/index.html', keys: ['WS','↑↓'], badge: 'COMING', locked: true,
-  }, 
+  },
   {
-  title: 'FRUIT SLICER',
-  desc: 'Swipe to slice. Dodge the bombs.',
-  icon: '🍉', accent: '#88ff44',
-  url: 'fruitslice/index.html',
-  keys: ['SWIPE'],
-  badge: 'PLAY', locked: false,
-},
+    title: 'FRUIT SLICER',
+    desc: 'Swipe to slice. Dodge the bombs.',
+    icon: '🍉', accent: '#88ff44',
+    url: 'fruitslice/index.html',
+    keys: ['SWIPE'],
+    badge: 'PLAY', locked: false,
+  },
   {
-  title: 'RACER',
-  desc: 'Random track every race. 3 laps. Beat your best time.',
-  icon: '🏎️', accent: '#44aaff',
-  url: 'racer/index.html',
-  keys: ['WASD', '↑↓←→'],
-  badge: 'COMING', locked: true,
-},
+    title: 'RACER',
+    desc: 'Random track every race. 3 laps. Beat your best time.',
+    icon: '🏎️', accent: '#44aaff',
+    url: 'racer/index.html',
+    keys: ['WASD', '↑↓←→'],
+    badge: 'COMING', locked: true,
+  },
 ];
 
 function buildGrid() {
@@ -571,11 +716,38 @@ function buildGrid() {
   availCount.textContent = available;
 }
 
+function buildDevlog() {
+  const container = document.getElementById('devlog');
+  if (!POSTS.length) {
+    container.innerHTML = '<div class="devlog-empty">NO POSTS YET — CHECK BACK SOON</div>';
+    return;
+  }
+  POSTS.forEach((post, i) => {
+    const el = document.createElement('div');
+    el.className = 'devlog-post';
+    el.style.setProperty('--post-accent', post.accent || 'var(--green)');
+    el.style.animationDelay = `${0.05 + i * 0.07}s`;
+    // convert \n in body to <br>
+    const bodyHtml = (post.body || '').replace(/\n/g, '<br>');
+    el.innerHTML = `
+      <div class="devlog-meta">
+        <span class="devlog-date">${post.date || ''}</span>
+        ${post.tag ? `<span class="devlog-tag">${post.tag}</span>` : ''}
+      </div>
+      <div class="devlog-content">
+        <div class="devlog-title">${post.title || ''}</div>
+        <div class="devlog-body">${bodyHtml}</div>
+      </div>`;
+    container.appendChild(el);
+  });
+}
+
 function showLauncher() {
   document.getElementById('passwordScreen').style.display = 'none';
   const el = document.getElementById('launcher');
   el.style.display = 'block';
   buildGrid();
+  buildDevlog();
 }
 
 // ── Password UI ──
