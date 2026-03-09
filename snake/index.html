@@ -32,6 +32,32 @@
     z-index: 10;
   }
 
+  /* Back button */
+  .back-btn {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    background: transparent;
+    border: 1px solid rgba(0,255,136,0.3);
+    color: rgba(0,255,136,0.5);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .back-btn:hover {
+    border-color: #00ff88;
+    color: #00ff88;
+    box-shadow: 0 0 12px rgba(0,255,136,0.2);
+  }
+
   h1 {
     font-family: 'Orbitron', sans-serif;
     font-weight: 900;
@@ -133,6 +159,8 @@
 </head>
 <body>
 
+<a class="back-btn" href="../index.html">◀ ARCADE</a>
+
 <h1>Snake</h1>
 <div class="score-bar">
   SCORE <span id="scoreDisplay">0</span>
@@ -163,7 +191,6 @@ const startBtn = document.getElementById('startBtn');
 const scoreDisplay = document.getElementById('scoreDisplay');
 const bestDisplay = document.getElementById('bestDisplay');
 
-// Responsive sizing
 const COLS = 24, ROWS = 24;
 const size = Math.min(Math.floor(Math.min(window.innerWidth * 0.9, window.innerHeight * 0.68) / COLS) * COLS, 480);
 const CELL = size / COLS;
@@ -194,14 +221,9 @@ function step() {
   if (paused) return;
   dir = nextDir;
   const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
-
-  // Wall collision
   if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) return endGame();
-  // Self collision
   if (snake.some(s => s.x === head.x && s.y === head.y)) return endGame();
-
   snake.unshift(head);
-
   if (head.x === food.x && head.y === food.y) {
     score++;
     scoreDisplay.textContent = score;
@@ -210,14 +232,11 @@ function step() {
   } else {
     snake.pop();
   }
-
   draw();
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Subtle grid
   ctx.strokeStyle = 'rgba(0,255,136,0.04)';
   ctx.lineWidth = 0.5;
   for (let x = 0; x <= COLS; x++) {
@@ -226,42 +245,27 @@ function draw() {
   for (let y = 0; y <= ROWS; y++) {
     ctx.beginPath(); ctx.moveTo(0, y*CELL); ctx.lineTo(canvas.width, y*CELL); ctx.stroke();
   }
-
-  // Snake
   snake.forEach((seg, i) => {
     const isHead = i === 0;
     const ratio = 1 - (i / snake.length) * 0.65;
     const alpha = isHead ? 1 : ratio;
     const pad = isHead ? 1 : 2;
-
-    if (isHead) {
-      ctx.shadowColor = '#00ff88';
-      ctx.shadowBlur = 18;
-    } else {
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = 'rgba(0,255,136,0.4)';
-    }
-
+    ctx.shadowColor = '#00ff88';
+    ctx.shadowBlur = isHead ? 18 : 6;
     ctx.fillStyle = `rgba(0,255,${Math.round(136 * alpha + 88 * (1-alpha))},${alpha})`;
     ctx.fillRect(seg.x*CELL+pad, seg.y*CELL+pad, CELL-pad*2, CELL-pad*2);
-
-    // Head accent
     if (isHead) {
       ctx.fillStyle = 'rgba(255,255,255,0.35)';
       ctx.fillRect(seg.x*CELL+pad+2, seg.y*CELL+pad+2, CELL*0.3, CELL*0.3);
     }
     ctx.shadowBlur = 0;
   });
-
-  // Food
   const pulse = 0.7 + 0.3 * Math.sin(Date.now() * 0.006);
   ctx.shadowColor = '#ff4466';
   ctx.shadowBlur = 18 * pulse;
   ctx.fillStyle = `rgba(255,${Math.round(60 + 20*pulse)},100,1)`;
   const fp = 3;
   ctx.fillRect(food.x*CELL+fp, food.y*CELL+fp, CELL-fp*2, CELL-fp*2);
-
-  // Food gleam
   ctx.fillStyle = 'rgba(255,200,200,0.5)';
   ctx.fillRect(food.x*CELL+fp+2, food.y*CELL+fp+2, CELL*0.28, CELL*0.28);
   ctx.shadowBlur = 0;
@@ -290,13 +294,7 @@ startBtn.addEventListener('click', () => {
 document.addEventListener('keydown', e => {
   const k = e.key;
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','w','a','s','d'].includes(k)) e.preventDefault();
-
-  if (k === ' ' && state === 'playing') {
-    paused = !paused;
-    if (!paused) draw();
-    return;
-  }
-
+  if (k === ' ' && state === 'playing') { paused = !paused; if (!paused) draw(); return; }
   const moves = {
     ArrowUp: {x:0,y:-1}, w: {x:0,y:-1},
     ArrowDown: {x:0,y:1}, s: {x:0,y:1},
@@ -307,7 +305,6 @@ document.addEventListener('keydown', e => {
   if (m && !(m.x === -dir.x && m.y === -dir.y)) nextDir = m;
 });
 
-// Touch swipe support
 let tx = 0, ty = 0;
 canvas.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
 canvas.addEventListener('touchend', e => {
@@ -323,23 +320,17 @@ canvas.addEventListener('touchend', e => {
   }
 }, {passive:true});
 
-// Initial idle draw
 function idleDraw() {
   if (state !== 'idle') return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = 'rgba(0,255,136,0.04)';
   ctx.lineWidth = 0.5;
-  for (let x = 0; x <= COLS; x++) {
-    ctx.beginPath(); ctx.moveTo(x*CELL, 0); ctx.lineTo(x*CELL, canvas.height); ctx.stroke();
-  }
-  for (let y = 0; y <= ROWS; y++) {
-    ctx.beginPath(); ctx.moveTo(0, y*CELL); ctx.lineTo(canvas.width, y*CELL); ctx.stroke();
-  }
+  for (let x = 0; x <= COLS; x++) { ctx.beginPath(); ctx.moveTo(x*CELL, 0); ctx.lineTo(x*CELL, canvas.height); ctx.stroke(); }
+  for (let y = 0; y <= ROWS; y++) { ctx.beginPath(); ctx.moveTo(0, y*CELL); ctx.lineTo(canvas.width, y*CELL); ctx.stroke(); }
   requestAnimationFrame(idleDraw);
 }
 idleDraw();
 
-// Food pulse redraw during gameplay
 (function pulse() {
   if (state === 'playing' && !paused) draw();
   setTimeout(pulse, 80);
