@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Racer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #050508;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Share Tech Mono', monospace;
+    color: #44aaff;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(40,120,255,0.012) 2px, rgba(40,120,255,0.012) 4px);
+    pointer-events: none; z-index: 10;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.85) 100%);
+    pointer-events: none; z-index: 9;
+  }
+
+  .back-btn {
+    position: fixed; top: 1rem; left: 1rem; z-index: 50;
+    padding: 0.4rem 0.9rem;
+    background: transparent;
+    border: 1px solid rgba(40,120,255,0.3);
+    color: rgba(40,120,255,0.5);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.15em;
+    text-decoration: none; transition: all 0.2s;
+  }
+  .back-btn:hover { border-color: #44aaff; color: #44aaff; box-shadow: 0 0 12px rgba(40,120,255,0.2); }
+
+  h1 {
+    font-family: 'Orbitron', sans-serif; font-weight: 900;
+    font-size: clamp(1.5rem, 4vw, 2.2rem); letter-spacing: 0.3em;
+    color: #44aaff;
+    text-shadow: 0 0 20px #44aaff, 0 0 50px rgba(40,120,255,0.35);
+    margin-bottom: 0.4rem;
+  }
+
+  .hud {
+    display: flex; gap: 2rem; margin-bottom: 0.6rem;
+    font-size: 0.75rem; letter-spacing: 0.15em;
+    color: rgba(40,120,255,0.5);
+  }
+  .hud span { color: #44aaff; }
+
+  .canvas-wrap {
+    position: relative;
+    border: 1px solid rgba(40,120,255,0.2);
+    box-shadow: 0 0 30px rgba(40,120,255,0.1), inset 0 0 30px rgba(0,0,0,0.5);
+  }
+
+  canvas { display: block; background: #050a05; }
+
+  #overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(3,4,10,0.92);
+    backdrop-filter: blur(3px); gap: 0.9rem;
+  }
+
+  #overlay h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.2rem, 4vw, 2rem); letter-spacing: 0.2em;
+    color: #44aaff; text-shadow: 0 0 20px #44aaff;
+  }
+
+  #overlay p {
+    font-size: 0.7rem; color: rgba(40,120,255,0.45);
+    letter-spacing: 0.08em; text-align: center;
+    line-height: 1.8; max-width: 300px;
+  }
+
+  .final-score { font-size: 1rem; color: rgba(40,120,255,0.75); letter-spacing: 0.15em; }
+
+  button {
+    margin-top: 0.3rem; padding: 0.6rem 2rem;
+    background: transparent; border: 1px solid #44aaff; color: #44aaff;
+    font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.2em; cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 0 10px rgba(40,120,255,0.15);
+  }
+  button:hover { background: rgba(40,120,255,0.08); box-shadow: 0 0 22px rgba(40,120,255,0.35); transform: scale(1.04); }
+
+  .btn-row { display: flex; gap: 0.8rem; }
+
+  .hint { font-size: 0.6rem; color: rgba(40,120,255,0.25); letter-spacing: 0.1em; text-align: center; }
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="../index.html">◀ ARCADE</a>
+<h1>RACER</h1>
+
+<div class="hud">
+  LAP <span id="lapEl">0/3</span>
+  &nbsp;|&nbsp;
+  TIME <span id="timeEl">0.00</span>s
+  &nbsp;|&nbsp;
+  BEST <span id="bestEl">--</span>
+  &nbsp;|&nbsp;
+  SPEED <span id="speedEl">0</span>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="c"></canvas>
+  <div id="overlay">
+    <h2 id="ovTitle">RACER</h2>
+    <p id="ovMsg">Race around a randomly generated track.<br>Complete 3 laps as fast as you can.<br>A new track every race!</p>
+    <div class="final-score" id="ovScore"></div>
+    <div class="btn-row">
+      <button id="startBtn">START RACE</button>
+      <button id="newTrackBtn" style="display:none">NEW TRACK</button>
+    </div>
+    <div class="hint">W/↑ Accelerate &nbsp;·&nbsp; S/↓ Brake &nbsp;·&nbsp; A/D or ←→ Steer</div>
+  </div>
+</div>
+
+<script>
+const canvas  = document.getElementById('c');
+const ctx     = canvas.getContext('2d');
+const lapEl   = document.getElementById('lapEl');
+const timeEl  = document.getElementById('timeEl');
+const bestEl  = document.getElementById('bestEl');
+const speedEl = document.getElementById('speedEl');
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ovTitle');
+const ovMsg   = document.getElementById('ovMsg');
+const ovScore = document.getElementById('ovScore');
+const startBtn    = document.getElementById('startBtn');
+const newTrackBtn = document.getElementById('newTrackBtn');
+
+// Screen size
+const W = Math.min(Math.floor(Math.min(window.innerWidth * 0.92, window.innerHeight * 0.72) / 10) * 10, 600);
+const H = Math.round(W * 0.78);
+canvas.width  = W;
+canvas.height = H;
+
+// World size — much larger than screen
+const WW = 3200, WH = 2600;
+const TRACK_WIDTH = 110;
+const LAPS_TO_WIN = 3;
+const CAR_W = 16, CAR_H = 26;
+
+// ── Keys ──
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+});
+window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// ════════════════════════════════════════
+//  TRACK GENERATION (in world space)
+// ════════════════════════════════════════
+function generateTrack() {
+  const cx = WW / 2, cy = WH / 2;
+  const rx = WW * 0.42, ry = WH * 0.40;
+  const numPts = 11 + Math.floor(Math.random() * 6);
+  const rawPts = [];
+
+  for (let i = 0; i < numPts; i++) {
+    const angle  = (i / numPts) * Math.PI * 2;
+    const wobble = 0.55 + Math.random() * 0.42;
+    rawPts.push({
+      x: cx + Math.cos(angle) * rx * wobble,
+      y: cy + Math.sin(angle) * ry * wobble,
+    });
+  }
+
+  let pts = rawPts;
+  for (let p = 0; p < 6; p++) pts = chaikin(pts);
+  pts = redistributePoints(pts, 18);
+  return pts;
+}
+
+function chaikin(pts) {
+  const n = pts.length, r = [];
+  for (let i = 0; i < n; i++) {
+    const a = pts[i], b = pts[(i+1)%n];
+    r.push({ x: a.x*0.75 + b.x*0.25, y: a.y*0.75 + b.y*0.25 });
+    r.push({ x: a.x*0.25 + b.x*0.75, y: a.y*0.25 + b.y*0.75 });
+  }
+  return r;
+}
+
+function redistributePoints(pts, minDist) {
+  const r = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const last = r[r.length-1];
+    if (Math.hypot(pts[i].x - last.x, pts[i].y - last.y) >= minDist) r.push(pts[i]);
+  }
+  return r;
+}
+
+function buildTrackGeometry(pts) {
+  const n = pts.length, inner = [], outer = [];
+  for (let i = 0; i < n; i++) {
+    const prev = pts[(i-1+n)%n], next = pts[(i+1)%n];
+    const tx = next.x - prev.x, ty = next.y - prev.y;
+    const len = Math.hypot(tx, ty) || 1;
+    const nx = -ty/len, ny = tx/len;
+    const hw = TRACK_WIDTH / 2;
+    inner.push({ x: pts[i].x + nx*hw, y: pts[i].y + ny*hw });
+    outer.push({ x: pts[i].x - nx*hw, y: pts[i].y - ny*hw });
+  }
+  return { inner, outer };
+}
+
+function buildArcLength(pts) {
+  const n = pts.length, d = [0];
+  for (let i = 1; i <= n; i++) {
+    const a = pts[(i-1)%n], b = pts[i%n];
+    d.push(d[i-1] + Math.hypot(b.x-a.x, b.y-a.y));
+  }
+  return d;
+}
+
+let trackPts, trackGeo, arcLengths, totalLength, startAngle;
+
+function newTrack() {
+  trackPts    = generateTrack();
+  trackGeo    = buildTrackGeometry(trackPts);
+  arcLengths  = buildArcLength(trackPts);
+  totalLength = arcLengths[arcLengths.length-1];
+  const p0 = trackPts[0], p1 = trackPts[1];
+  startAngle = Math.atan2(p1.y-p0.y, p1.x-p0.x);
+}
+
+// ── Track helpers ──
+function distToSegment(px,py,ax,ay,bx,by) {
+  const dx=bx-ax, dy=by-ay, lenSq=dx*dx+dy*dy;
+  if (!lenSq) return Math.hypot(px-ax,py-ay);
+  const t = Math.max(0, Math.min(1, ((px-ax)*dx+(py-ay)*dy)/lenSq));
+  return Math.hypot(px-(ax+t*dx), py-(ay+t*dy));
+}
+
+function isOnTrack(x, y) {
+  const n = trackPts.length;
+  for (let i = 0; i < n; i++) {
+    const a = trackPts[i], b = trackPts[(i+1)%n];
+    if (distToSegment(x,y,a.x,a.y,b.x,b.y) < TRACK_WIDTH/2 + 4) return true;
+  }
+  return false;
+}
+
+function getProgress(x, y) {
+  const n = trackPts.length;
+  let best = Infinity, idx = 0;
+  for (let i = 0; i < n; i++) {
+    const d = Math.hypot(x-trackPts[i].x, y-trackPts[i].y);
+    if (d < best) { best = d; idx = i; }
+  }
+  return arcLengths[idx] / totalLength;
+}
+
+// ════════════════════════════════════════
+//  CAR
+// ════════════════════════════════════════
+let car;
+
+function initCar() {
+  const p = trackPts[0];
+  car = {
+    x: p.x, y: p.y,
+    angle: startAngle,
+    speed: 0,
+    maxSpeed: 8,
+    accel: 0.18,
+    brake: 0.22,
+    friction: 0.975,
+    offRoadFriction: 0.87,
+    turnSpeed: 0.048,
+    lap: 0,
+    progress: 0,
+    prevProgress: 0,
+    crossedHalf: false,
+  };
+}
+
+function updateCar() {
+  const onTrack = isOnTrack(car.x, car.y);
+  const friction = onTrack ? car.friction : car.offRoadFriction;
+
+  if (keys['ArrowUp']   || keys['w']) car.speed = Math.min(car.maxSpeed,    car.speed + car.accel);
+  else if (keys['ArrowDown'] || keys['s']) car.speed = Math.max(-car.maxSpeed*0.5, car.speed - car.brake);
+
+  car.speed *= friction;
+  if (Math.abs(car.speed) < 0.01) car.speed = 0;
+
+  const ts = Math.min(1, Math.abs(car.speed) / 2);
+  if (keys['ArrowLeft']  || keys['a']) car.angle -= car.turnSpeed * ts * Math.sign(car.speed);
+  if (keys['ArrowRight'] || keys['d']) car.angle += car.turnSpeed * ts * Math.sign(car.speed);
+
+  car.x += Math.cos(car.angle) * car.speed;
+  car.y += Math.sin(car.angle) * car.speed;
+
+  car.prevProgress = car.progress;
+  car.progress = getProgress(car.x, car.y);
+
+  if (car.progress > 0.45 && car.progress < 0.55) car.crossedHalf = true;
+  if (car.crossedHalf && car.prevProgress > 0.85 && car.progress < 0.15) {
+    car.lap++;
+    car.crossedHalf = false;
+    if (car.lap >= LAPS_TO_WIN) finishRace();
+  }
+
+  lapEl.textContent   = `${Math.min(car.lap, LAPS_TO_WIN)}/${LAPS_TO_WIN}`;
+  speedEl.textContent = Math.abs(Math.round(car.speed * 28));
+}
+
+// ════════════════════════════════════════
+//  DRAW — everything goes through camera transform
+// ════════════════════════════════════════
+let camX = 0, camY = 0; // smoothed camera position
+
+function applyCameraTransform() {
+  // Smooth camera follow
+  camX += (car.x - W/2 - camX) * 0.12;
+  camY += (car.y - H/2 - camY) * 0.12;
+  ctx.translate(-camX, -camY);
+}
+
+function drawGrass() {
+  // Fill visible area with grass
+  ctx.fillStyle = '#0d1a0a';
+  ctx.fillRect(camX, camY, W, H);
+
+  // Grass grid pattern
+  ctx.strokeStyle = 'rgba(255,255,255,0.018)';
+  ctx.lineWidth = 0.5;
+  const gx = Math.floor(camX / 40) * 40;
+  const gy = Math.floor(camY / 40) * 40;
+  for (let x = gx; x < camX + W + 40; x += 40) {
+    ctx.beginPath(); ctx.moveTo(x, camY); ctx.lineTo(x, camY + H); ctx.stroke();
+  }
+  for (let y = gy; y < camY + H + 40; y += 40) {
+    ctx.beginPath(); ctx.moveTo(camX, y); ctx.lineTo(camX + W, y); ctx.stroke();
+  }
+}
+
+function drawTrack() {
+  const n = trackPts.length;
+
+  // Road surface
+  ctx.beginPath();
+  ctx.moveTo(trackGeo.outer[0].x, trackGeo.outer[0].y);
+  for (let i = 1; i < n; i++) ctx.lineTo(trackGeo.outer[i].x, trackGeo.outer[i].y);
+  ctx.closePath();
+  for (let i = n-1; i >= 0; i--) {
+    i === n-1
+      ? ctx.moveTo(trackGeo.inner[i].x, trackGeo.inner[i].y)
+      : ctx.lineTo(trackGeo.inner[i].x, trackGeo.inner[i].y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = '#2a2a2a';
+  ctx.fill('evenodd');
+
+  // Kerb (red/white alternating segments on edges)
+  const kerbLen = 40;
+  for (let i = 0; i < n; i++) {
+    const t = (i / n);
+    const seg = Math.floor(t * totalLength / kerbLen);
+    const col = seg % 2 === 0 ? 'rgba(255,60,60,0.7)' : 'rgba(255,255,255,0.7)';
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 5;
+    const a = trackGeo.outer[i], b = trackGeo.outer[(i+1)%n];
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    const c = trackGeo.inner[i], d2 = trackGeo.inner[(i+1)%n];
+    ctx.beginPath(); ctx.moveTo(c.x,c.y); ctx.lineTo(d2.x,d2.y); ctx.stroke();
+  }
+
+  // White edge lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(trackGeo.outer[0].x, trackGeo.outer[0].y);
+  for (let i = 1; i < n; i++) ctx.lineTo(trackGeo.outer[i].x, trackGeo.outer[i].y);
+  ctx.closePath(); ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(trackGeo.inner[0].x, trackGeo.inner[0].y);
+  for (let i = 1; i < n; i++) ctx.lineTo(trackGeo.inner[i].x, trackGeo.inner[i].y);
+  ctx.closePath(); ctx.stroke();
+
+  // Dashed centre line
+  ctx.setLineDash([20, 22]);
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(trackPts[0].x, trackPts[0].y);
+  for (let i = 1; i < n; i++) ctx.lineTo(trackPts[i].x, trackPts[i].y);
+  ctx.closePath(); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Start/finish checkerboard
+  const sf1 = trackGeo.inner[0], sf2 = trackGeo.outer[0];
+  const segs = 8;
+  for (let i = 0; i < segs; i++) {
+    const t1 = i/segs, t2 = (i+1)/segs;
+    const x1 = sf1.x+(sf2.x-sf1.x)*t1, y1 = sf1.y+(sf2.y-sf1.y)*t1;
+    const x2 = sf1.x+(sf2.x-sf1.x)*t2, y2 = sf1.y+(sf2.y-sf1.y)*t2;
+    ctx.strokeStyle = i%2===0 ? '#ffffff' : '#000000';
+    ctx.lineWidth = 10;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  }
+}
+
+function drawCar() {
+  ctx.save();
+  ctx.translate(car.x, car.y);
+  ctx.rotate(car.angle + Math.PI/2);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(4, 4, CAR_W*0.55, CAR_H*0.45, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Body
+  ctx.shadowColor = '#44aaff';
+  ctx.shadowBlur  = 14;
+  ctx.fillStyle   = '#1166dd';
+  ctx.beginPath();
+  ctx.roundRect(-CAR_W/2, -CAR_H/2, CAR_W, CAR_H, 4);
+  ctx.fill();
+
+  // Cockpit
+  ctx.fillStyle = '#88ccff';
+  ctx.shadowBlur = 6;
+  ctx.beginPath();
+  ctx.roundRect(-CAR_W/2+3, -CAR_H/2+5, CAR_W-6, CAR_H*0.45, 3);
+  ctx.fill();
+
+  // Wheels
+  ctx.fillStyle = '#111';
+  ctx.shadowBlur = 0;
+  [[-CAR_W/2-3,-CAR_H/2+4],[CAR_W/2-1,-CAR_H/2+4],[-CAR_W/2-3,CAR_H/2-10],[CAR_W/2-1,CAR_H/2-10]]
+    .forEach(([wx,wy]) => ctx.fillRect(wx,wy,5,8));
+
+  // Headlights
+  ctx.fillStyle = '#ffeeaa';
+  ctx.shadowColor = '#ffeeaa'; ctx.shadowBlur = 10;
+  ctx.fillRect(-CAR_W/2+2,-CAR_H/2,5,3);
+  ctx.fillRect( CAR_W/2-7,-CAR_H/2,5,3);
+
+  // Exhaust particles when moving
+  if (Math.abs(car.speed) > 1) {
+    ctx.fillStyle = `rgba(180,180,180,${Math.random()*0.4})`;
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc((Math.random()-0.5)*4, CAR_H/2+4, 3+Math.random()*3, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+  ctx.shadowBlur = 0;
+}
+
+// ── Off road flash ──
+let offRoadFlash = 0;
+
+function draw() {
+  ctx.save();
+  ctx.clearRect(0, 0, W, H);
+  applyCameraTransform();
+  drawGrass();
+  drawTrack();
+  drawCar();
+  ctx.restore();
+
+  // Off-road warning (screen-space, after restoring transform)
+  if (!isOnTrack(car.x, car.y)) {
+    offRoadFlash = (offRoadFlash+1) % 20;
+    if (offRoadFlash < 10) {
+      ctx.fillStyle = 'rgba(255,60,60,0.07)';
+      ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle = 'rgba(255,60,60,0.45)';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(4,4,W-8,H-8);
+    }
+  }
+
+  drawMinimap();
+}
+
+function drawMinimap() {
+  const mw = 100, mh = 82, mx = W - mw - 8, my = 8;
+  // Compute world bounding box from track
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  trackPts.forEach(p => {
+    if(p.x<minX)minX=p.x; if(p.y<minY)minY=p.y;
+    if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y;
+  });
+  const pad = TRACK_WIDTH;
+  minX-=pad; minY-=pad; maxX+=pad; maxY+=pad;
+  const bw = maxX-minX, bh = maxY-minY;
+  const scaleX = mw/bw, scaleY = mh/bh;
+
+  ctx.save();
+  ctx.globalAlpha = 0.8;
+  ctx.fillStyle = 'rgba(0,0,0,0.65)';
+  ctx.fillRect(mx,my,mw,mh);
+  ctx.strokeStyle = 'rgba(40,120,255,0.5)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(mx,my,mw,mh);
+
+  // Track outline on map
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  trackPts.forEach((p,i) => {
+    const fx = mx+(p.x-minX)*scaleX, fy = my+(p.y-minY)*scaleY;
+    i===0 ? ctx.moveTo(fx,fy) : ctx.lineTo(fx,fy);
+  });
+  ctx.closePath(); ctx.stroke();
+
+  // Start line dot
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(mx+(trackPts[0].x-minX)*scaleX, my+(trackPts[0].y-minY)*scaleY, 3, 0, Math.PI*2);
+  ctx.fill();
+
+  // Car dot
+  ctx.fillStyle = '#44aaff';
+  ctx.shadowColor = '#44aaff'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  ctx.arc(mx+(car.x-minX)*scaleX, my+(car.y-minY)*scaleY, 4, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.restore();
+  ctx.shadowBlur = 0;
+}
+
+// ── Race flow ──
+let raceStart, raceTime, bestTime = null, rafId, state = 'idle';
+
+function startRace() {
+  initCar();
+  camX = car.x - W/2;
+  camY = car.y - H/2;
+  raceStart = performance.now();
+  raceTime  = 0;
+  state     = 'playing';
+  overlay.style.display = 'none';
+  loop();
+}
+
+function finishRace() {
+  state    = 'finished';
+  raceTime = (performance.now() - raceStart) / 1000;
+  if (bestTime === null || raceTime < bestTime) bestTime = raceTime;
+  bestEl.textContent = bestTime.toFixed(2) + 's';
+  ovTitle.textContent = 'RACE COMPLETE!';
+  ovMsg.textContent   = '';
+  ovScore.textContent = `TIME: ${raceTime.toFixed(2)}s${bestTime===raceTime ? '  ★ NEW BEST' : ''}`;
+  startBtn.textContent = 'RACE AGAIN';
+  newTrackBtn.style.display = 'inline-block';
+  overlay.style.display = 'flex';
+  cancelAnimationFrame(rafId);
+}
+
+function loop() {
+  if (state !== 'playing') return;
+  raceTime = (performance.now() - raceStart) / 1000;
+  timeEl.textContent = raceTime.toFixed(2);
+  updateCar();
+  draw();
+  rafId = requestAnimationFrame(loop);
+}
+
+startBtn.addEventListener('click', startRace);
+
+newTrackBtn.addEventListener('click', () => {
+  newTrack();
+  newTrackBtn.style.display = 'none';
+  ovTitle.textContent = 'NEW TRACK';
+  ovMsg.textContent   = 'A fresh track has been generated!';
+  ovScore.textContent = '';
+  startBtn.textContent = 'START RACE';
+  overlay.style.display = 'flex';
+});
+
+// ── Init ──
+newTrack();
+
+// Idle — show minimap preview of track
+(function idleDraw() {
+  if (state !== 'idle') return;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#0d1a0a';
+  ctx.fillRect(0,0,W,H);
+  // Draw full track scaled to fit screen for preview
+  ctx.save();
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  trackPts.forEach(p => {
+    if(p.x<minX)minX=p.x; if(p.y<minY)minY=p.y;
+    if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y;
+  });
+  const pad = TRACK_WIDTH*2;
+  minX-=pad; minY-=pad; maxX+=pad; maxY+=pad;
+  const bw=maxX-minX, bh=maxY-minY;
+  const scale = Math.min(W/bw, H/bh) * 0.9;
+  ctx.translate(W/2 - (minX+bw/2)*scale, H/2 - (minY+bh/2)*scale);
+  ctx.scale(scale, scale);
+
+  // Grass
+  ctx.fillStyle = '#0d1a0a';
+  ctx.fillRect(minX,minY,bw,bh);
+
+  // Road
+  const n = trackPts.length;
+  ctx.beginPath();
+  ctx.moveTo(trackGeo.outer[0].x,trackGeo.outer[0].y);
+  for(let i=1;i<n;i++) ctx.lineTo(trackGeo.outer[i].x,trackGeo.outer[i].y);
+  ctx.closePath();
+  for(let i=n-1;i>=0;i--){
+    i===n-1?ctx.moveTo(trackGeo.inner[i].x,trackGeo.inner[i].y):ctx.lineTo(trackGeo.inner[i].x,trackGeo.inner[i].y);
+  }
+  ctx.closePath();
+  ctx.fillStyle='#2a2a2a'; ctx.fill('evenodd');
+
+  ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=3/scale;
+  ctx.beginPath();
+  ctx.moveTo(trackGeo.outer[0].x,trackGeo.outer[0].y);
+  for(let i=1;i<n;i++) ctx.lineTo(trackGeo.outer[i].x,trackGeo.outer[i].y);
+  ctx.closePath(); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(trackGeo.inner[0].x,trackGeo.inner[0].y);
+  for(let i=1;i<n;i++) ctx.lineTo(trackGeo.inner[i].x,trackGeo.inner[i].y);
+  ctx.closePath(); ctx.stroke();
+
+  ctx.restore();
+  requestAnimationFrame(idleDraw);
+})();
+</script>
+</body>
+</html>
