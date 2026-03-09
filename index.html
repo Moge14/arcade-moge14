@@ -547,8 +547,16 @@ function showLauncher() {
   buildGrid();
 }
 
-// Boot
-if (isAuthed()) { showLauncher(); } else { updateLockUI(); pwInput.focus(); }
+// Boot — if already authed, show launcher instantly (no fade delay)
+if (isAuthed()) {
+  document.getElementById('passwordScreen').style.display = 'none';
+  const el = document.getElementById('launcher');
+  el.style.display = 'block';
+  buildGrid();
+} else {
+  updateLockUI();
+  pwInput.focus();
+}
 
 // ── Game registry ──
 const GAMES = [
