@@ -238,7 +238,7 @@ function initGame() {
   scoreL=0; scoreR=0;
   updateScoreDisplay();
   padL={ y: H/2-PAD_H/2 };
-  padR={ y: H/2-PAD_H/2 };
+  padR={ y: H/2-PAD_H/2, x: W-PAD_MARGIN-PAD_W };
   particles.length=0;
   resetBall(Math.random()<0.5?1:-1);
 }
@@ -257,36 +257,35 @@ function resetBall(dir) {
 }
 
 // ── CPU ──
-let cpuTargetY = 0;
+let cpuTargetY = H / 2;
 let cpuReactTimer = 0;
-const CPU_REACT_FRAMES = 30;
-const CPU_ERROR = 0;
-const CPU_MAX_SPEED = 0;
 
 function updateCPU() {
-  const PAD_H_local = PAD_H;
-  if (!cpuTargetY) cpuTargetY = H / 2;
-  const CPU_ERR = PAD_H_local * 0.6;
-  const CPU_SPD = H * 0.0095;
+  // Only reconsider target every 45 frames (~0.75s) — slow reaction time
   cpuReactTimer++;
-  if (cpuReactTimer >= 30) {
+  if (cpuReactTimer >= 45) {
     cpuReactTimer = 0;
+    const rightPadX = W - PAD_MARGIN - PAD_W;
     if (ball.vx > 0) {
-      const t = (padR.x - ball.x) / (ball.vx || 1);
+      const t = (rightPadX - ball.x) / ball.vx;
       let py = ball.y + ball.vy * t;
       if (py < 0) py = -py;
       if (py > H) py = 2 * H - py;
       py = Math.max(0, Math.min(H, py));
-      cpuTargetY = py + (Math.random() * 2 - 1) * CPU_ERR;
+      // Large random error — CPU frequently misses
+      const err = PAD_H * (0.9 + Math.random() * 0.8);
+      cpuTargetY = py + (Math.random() * 2 - 1) * err;
     } else {
-      cpuTargetY = H / 2;
+      cpuTargetY = H / 2 + (Math.random() - 0.5) * H * 0.3;
     }
   }
-  const mid = padR.y + PAD_H_local / 2;
+  // CPU max speed is well below player speed (player = H*0.017)
+  const CPU_SPD = H * 0.006;
+  const mid  = padR.y + PAD_H / 2;
   const diff = cpuTargetY - mid;
-  if (Math.abs(diff) > 4) {
-    padR.y += Math.sign(diff) * Math.min(Math.abs(diff), CPU_SPD);
-    padR.y = Math.max(0, Math.min(H - PAD_H_local, padR.y));
+  if (Math.abs(diff) > 6) {
+    padR.y += Math.sign(diff) * Math.min(Math.abs(diff) * 0.08, CPU_SPD);
+    padR.y  = Math.max(0, Math.min(H - PAD_H, padR.y));
   }
 }
 
