@@ -541,14 +541,14 @@ canvas.height = ROWS * CS;
 // ZONE DEFINITIONS
 // ═══════════════════════════════════════════════════════════
 const ZONES = {
-  RES:    { label:'Residential', cost:50,   color:'#d4e8c2', border:'#5a8a3a', icon:'🏠', popCap:4, taxRate:10,  powerUse:1, foodUse:1  },
-  COM:    { label:'Commercial',  cost:80,   color:'#d6e4f0', border:'#3a6a8a', icon:'🏪', popCap:0, taxRate:25,  powerUse:2, foodUse:0  },
-  IND:    { label:'Industrial',  cost:100,  color:'#e8dcc8', border:'#8a6a3a', icon:'🏭', popCap:0, taxRate:15,  powerUse:3, foodUse:0, pollutes:true },
-  PARK:   { label:'Park',        cost:40,   color:'#c8e8b0', border:'#3a7a2a', icon:'🌳', popCap:0, taxRate:0,   powerUse:0, foodUse:0, happiness:8  },
-  POWER:  { label:'Power Plant', cost:200,  color:'#f0e8c8', border:'#a08020', icon:'⚡', popCap:0, taxRate:0,   powerUse:-12, foodUse:0 },
-  FARM:   { label:'Farm',        cost:120,  color:'#e0f0c0', border:'#608040', icon:'🌾', popCap:0, taxRate:0,   powerUse:1, foodUse:-8 },
-  POLICE: { label:'Police Stn',  cost:150,  color:'#dce4f8', border:'#3040a0', icon:'🚔', popCap:0, taxRate:0,   powerUse:2, foodUse:0, reduceCrime:true },
-  ERASE:  { label:'Demolish',    cost:-20,  color:null,      border:null,      icon:'🗑' },
+  RES:    { label:'Residential', cost:25,   color:'#d4e8c2', border:'#5a8a3a', icon:'🏠', popCap:4, taxRate:10,  powerUse:1, foodUse:1  },
+  COM:    { label:'Commercial',  cost:40,   color:'#d6e4f0', border:'#3a6a8a', icon:'🏪', popCap:0, taxRate:25,  powerUse:2, foodUse:0  },
+  IND:    { label:'Industrial',  cost:50,  color:'#e8dcc8', border:'#8a6a3a', icon:'🏭', popCap:0, taxRate:15,  powerUse:3, foodUse:0, pollutes:true },
+  PARK:   { label:'Park',        cost:20,   color:'#c8e8b0', border:'#3a7a2a', icon:'🌳', popCap:0, taxRate:0,   powerUse:0, foodUse:0, happiness:8  },
+  POWER:  { label:'Power Plant', cost:100,  color:'#f0e8c8', border:'#a08020', icon:'⚡', popCap:0, taxRate:0,   powerUse:-12, foodUse:0 },
+  FARM:   { label:'Farm',        cost:60,  color:'#e0f0c0', border:'#608040', icon:'🌾', popCap:0, taxRate:0,   powerUse:1, foodUse:-8 },
+  POLICE: { label:'Police Stn',  cost:75,  color:'#dce4f8', border:'#3040a0', icon:'🚔', popCap:0, taxRate:0,   powerUse:2, foodUse:0, reduceCrime:true },
+  ERASE:  { label:'Demolish',    cost:-40,  color:null,      border:null,      icon:'🗑' },
 };
 
 const ZONE_TOOLTIPS = {
@@ -576,7 +576,7 @@ let selectedZone = null;
 let hoverCell    = null;
 let raf = null, lastTs = 0;
 let budgetTimer  = 0;
-const BUDGET_INTERVAL = 15000; // ms
+const BUDGET_INTERVAL = 10000; // ms
 
 const SEASONS = ['Spring','Summer','Autumn','Winter'];
 
