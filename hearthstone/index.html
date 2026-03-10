@@ -443,13 +443,13 @@ body::before {
       <!-- Zoning -->
       <div class="panel">
         <h3>Zone Land</h3>
-        <button class="zone-btn" id="zb-RES"   onclick="selectZone('RES')">  <span>🏠 Residential</span><span class="zone-cost">$50</span></button>
-        <button class="zone-btn" id="zb-COM"   onclick="selectZone('COM')">  <span>🏪 Commercial</span> <span class="zone-cost">$80</span></button>
-        <button class="zone-btn" id="zb-IND"   onclick="selectZone('IND')">  <span>🏭 Industrial</span> <span class="zone-cost">$100</span></button>
-        <button class="zone-btn" id="zb-PARK"  onclick="selectZone('PARK')"> <span>🌳 Park</span>       <span class="zone-cost">$40</span></button>
-        <button class="zone-btn" id="zb-POWER" onclick="selectZone('POWER')"><span>⚡ Power Plant</span><span class="zone-cost">$200</span></button>
-        <button class="zone-btn" id="zb-FARM"  onclick="selectZone('FARM')"> <span>🌾 Farm</span>       <span class="zone-cost">$120</span></button>
-        <button class="zone-btn" id="zb-POLICE"onclick="selectZone('POLICE')"><span>🚔 Police Stn</span><span class="zone-cost">$150</span></button>
+        <button class="zone-btn" id="zb-RES"   onclick="selectZone('RES')">  <span>🏠 Residential</span><span class="zone-cost">$20</span></button>
+        <button class="zone-btn" id="zb-COM"   onclick="selectZone('COM')">  <span>🏪 Commercial</span> <span class="zone-cost">$30</span></button>
+        <button class="zone-btn" id="zb-IND"   onclick="selectZone('IND')">  <span>🏭 Industrial</span> <span class="zone-cost">$40</span></button>
+        <button class="zone-btn" id="zb-PARK"  onclick="selectZone('PARK')"> <span>🌳 Park</span>       <span class="zone-cost">$15</span></button>
+        <button class="zone-btn" id="zb-POWER" onclick="selectZone('POWER')"><span>⚡ Power Plant</span><span class="zone-cost">$80</span></button>
+        <button class="zone-btn" id="zb-FARM"  onclick="selectZone('FARM')"> <span>🌾 Farm</span>       <span class="zone-cost">$50</span></button>
+        <button class="zone-btn" id="zb-POLICE"onclick="selectZone('POLICE')"><span>🚔 Police Stn</span><span class="zone-cost">$60</span></button>
         <button class="zone-btn" id="zb-ERASE" onclick="selectZone('ERASE')"><span>🗑 Demolish</span>  <span class="zone-cost">+$20</span></button>
         <div class="tooltip" id="zoneTooltip">Select a zone type, then click the map to place it.</div>
       </div>
@@ -541,14 +541,14 @@ canvas.height = ROWS * CS;
 // ZONE DEFINITIONS
 // ═══════════════════════════════════════════════════════════
 const ZONES = {
-  RES:    { label:'Residential', cost:25,   color:'#d4e8c2', border:'#5a8a3a', icon:'🏠', popCap:4, taxRate:10,  powerUse:1, foodUse:1  },
-  COM:    { label:'Commercial',  cost:40,   color:'#d6e4f0', border:'#3a6a8a', icon:'🏪', popCap:0, taxRate:25,  powerUse:2, foodUse:0  },
-  IND:    { label:'Industrial',  cost:50,  color:'#e8dcc8', border:'#8a6a3a', icon:'🏭', popCap:0, taxRate:15,  powerUse:3, foodUse:0, pollutes:true },
-  PARK:   { label:'Park',        cost:20,   color:'#c8e8b0', border:'#3a7a2a', icon:'🌳', popCap:0, taxRate:0,   powerUse:0, foodUse:0, happiness:8  },
-  POWER:  { label:'Power Plant', cost:100,  color:'#f0e8c8', border:'#a08020', icon:'⚡', popCap:0, taxRate:0,   powerUse:-12, foodUse:0 },
-  FARM:   { label:'Farm',        cost:60,  color:'#e0f0c0', border:'#608040', icon:'🌾', popCap:0, taxRate:0,   powerUse:1, foodUse:-8 },
-  POLICE: { label:'Police Stn',  cost:75,  color:'#dce4f8', border:'#3040a0', icon:'🚔', popCap:0, taxRate:0,   powerUse:2, foodUse:0, reduceCrime:true },
-  ERASE:  { label:'Demolish',    cost:-40,  color:null,      border:null,      icon:'🗑' },
+  RES:    { label:'Residential', cost:20,   color:'#d4e8c2', border:'#5a8a3a', icon:'🏠', popCap:4, taxRate:30,  powerUse:1, foodUse:1  },
+  COM:    { label:'Commercial',  cost:30,   color:'#d6e4f0', border:'#3a6a8a', icon:'🏪', popCap:0, taxRate:60,  powerUse:2, foodUse:0  },
+  IND:    { label:'Industrial',  cost:40,   color:'#e8dcc8', border:'#8a6a3a', icon:'🏭', popCap:0, taxRate:50,  powerUse:3, foodUse:0, pollutes:true },
+  PARK:   { label:'Park',        cost:15,   color:'#c8e8b0', border:'#3a7a2a', icon:'🌳', popCap:0, taxRate:0,   powerUse:0, foodUse:0, happiness:8  },
+  POWER:  { label:'Power Plant', cost:80,   color:'#f0e8c8', border:'#a08020', icon:'⚡', popCap:0, taxRate:0,   powerUse:-12, foodUse:0 },
+  FARM:   { label:'Farm',        cost:50,   color:'#e0f0c0', border:'#608040', icon:'🌾', popCap:0, taxRate:0,   powerUse:1, foodUse:-8 },
+  POLICE: { label:'Police Stn',  cost:60,   color:'#dce4f8', border:'#3040a0', icon:'🚔', popCap:0, taxRate:0,   powerUse:2, foodUse:0, reduceCrime:true },
+  ERASE:  { label:'Demolish',    cost:-20,  color:null,      border:null,      icon:'🗑' },
 };
 
 const ZONE_TOOLTIPS = {
@@ -576,7 +576,7 @@ let selectedZone = null;
 let hoverCell    = null;
 let raf = null, lastTs = 0;
 let budgetTimer  = 0;
-const BUDGET_INTERVAL = 10000; // ms
+const BUDGET_INTERVAL = 15000; // ms
 
 const SEASONS = ['Spring','Summer','Autumn','Winter'];
 
@@ -585,7 +585,7 @@ function newGame() {
     cityName: CITY_NAMES[Math.floor(Math.random()*CITY_NAMES.length)],
     grid: Array.from({length:ROWS}, ()=>Array(COLS).fill(null)),
     pop: 0,
-    money: 500,
+    money: 800,
     happiness: 60,
     year: 1,
     seasonIdx: 0,
@@ -619,13 +619,13 @@ function calcResources() {
     if(t.type==='RES') resCount++;
     if(t.type==='COM') comCount++;
     // Tax
-    if(t.type==='RES') taxIncome += z.taxRate * (t.pop||0) * 0.1;
-    if(t.type==='COM') taxIncome += z.taxRate * Math.min(1, G.pop/20);
+    if(t.type==='RES') taxIncome += z.taxRate * (t.pop||0);
+    if(t.type==='COM') taxIncome += z.taxRate * Math.min(1, G.pop/10);
     if(t.type==='IND') taxIncome += z.taxRate;
-    // Maintenance
-    if(t.type==='POWER') maintenanceCost += 30;
-    if(t.type==='POLICE') maintenanceCost += 20;
-    if(t.type==='FARM') maintenanceCost += 15;
+    // Maintenance — very low so infrastructure doesn't instantly bankrupt you
+    if(t.type==='POWER') maintenanceCost += 3;
+    if(t.type==='POLICE') maintenanceCost += 2;
+    if(t.type==='FARM') maintenanceCost += 2;
   }
 
   // Happiness calc
@@ -766,7 +766,7 @@ function placeZone(col, row) {
   if(G.money<z.cost) { notify('Not enough funds!','bad'); return; }
   if(G.grid[row][col]) { notify('Tile already occupied. Demolish first.','bad'); return; }
 
-  G.grid[row][col] = { type:selectedZone, pop:0, age:0 };
+  G.grid[row][col] = { type:selectedZone, pop: selectedZone==='RES' ? 1 : 0, age:0 };
   G.money -= z.cost;
   G.totalBuilt++;
   updateHUD();
