@@ -21,11 +21,12 @@
     pointer-events: none; z-index: 10;
   }
   .back-btn {
-    position: fixed; top: 1rem; left: 1rem; z-index: 50;
-    padding: 0.4rem 0.9rem; background: transparent;
-    border: 1px solid rgba(255,68,102,0.3); color: rgba(255,68,102,0.5);
+    position: fixed; top: 1rem; left: 1rem; z-index: 110; /* above overlay */
+    padding: 0.4rem 0.9rem; background: rgba(10,0,8,0.85);
+    border: 1px solid rgba(255,68,102,0.4); color: rgba(255,68,102,0.6);
     font-family: 'Share Tech Mono', monospace; font-size: 0.65rem;
     letter-spacing: 0.15em; text-decoration: none; transition: all 0.2s;
+    backdrop-filter: blur(4px);
   }
   .back-btn:hover { border-color: #ff4466; color: #ff4466; box-shadow: 0 0 12px rgba(255,68,102,0.25); }
   h1 {
@@ -347,7 +348,6 @@ function minimax(b,depth,alpha,beta,maxing,epSq,cstR){
   const color=maxing?'b':'w';
   const moves=allMoves(b,color,epSq,cstR);
   if(!moves.length)return maxing?-19000:19000;
-  // sort: captures first
   moves.sort((a,m)=>(b[m[2]][m[3]]?1:0)-(b[a[2]][a[3]]?1:0));
   if(maxing){
     let best=-Infinity;
@@ -403,7 +403,6 @@ function draw(){
       }
     }
 
-    // coord labels
     ctx.fillStyle='rgba(255,68,102,0.22)';ctx.font=`${SQ*0.16}px Share Tech Mono`;
     if(c===0)ctx.fillText(8-r,x+3,y+SQ*0.23);
     if(r===7)ctx.fillText(FILES[c],x+SQ-SQ*0.22,y+SQ-3);
@@ -430,7 +429,6 @@ function updateHUD(){
   document.getElementById('checkEl').textContent=chk?(turn==='w'?'WHITE!':'BLACK!'):'NO';
   document.getElementById('statusMsg').textContent=
     over?'GAME OVER':cpuBusy?'CPU THINKING':chk?`${turn==='w'?'WHITE':'BLACK'} IN CHECK`:`${turn==='w'?'WHITE':'BLACK'} TO MOVE`;
-  // move log
   const ml=document.getElementById('moveList');ml.innerHTML='';
   for(let i=0;i<history.length;i+=2){
     const d=document.createElement('div');d.className='move-pair';
