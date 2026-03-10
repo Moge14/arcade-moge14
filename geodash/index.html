@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CUBE DASH</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #07020f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Share Tech Mono', monospace;
+    color: #cc88ff;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(180,80,255,0.013) 2px, rgba(180,80,255,0.013) 4px);
+    pointer-events: none; z-index: 10;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.88) 100%);
+    pointer-events: none; z-index: 9;
+  }
+
+  .back-btn {
+    position: fixed; top: 1rem; left: 1rem; z-index: 50;
+    padding: 0.4rem 0.9rem;
+    background: transparent;
+    border: 1px solid rgba(180,80,255,0.3);
+    color: rgba(180,80,255,0.5);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.15em;
+    text-decoration: none; transition: all 0.2s;
+  }
+  .back-btn:hover { border-color: #cc88ff; color: #cc88ff; box-shadow: 0 0 12px rgba(180,80,255,0.25); }
+
+  h1 {
+    font-family: 'Orbitron', sans-serif; font-weight: 900;
+    font-size: clamp(1.6rem, 4vw, 2.4rem); letter-spacing: 0.35em;
+    color: #cc88ff;
+    text-shadow: 0 0 20px #cc88ff, 0 0 60px rgba(180,80,255,0.4);
+    margin-bottom: 0.35rem;
+  }
+
+  .hud {
+    display: flex; gap: 1.8rem; margin-bottom: 0.5rem;
+    font-size: 0.72rem; letter-spacing: 0.15em;
+    color: rgba(180,80,255,0.45);
+  }
+  .hud span { color: #cc88ff; }
+
+  .progress-wrap {
+    width: 100%; max-width: 580px;
+    height: 3px;
+    background: rgba(180,80,255,0.12);
+    margin-bottom: 0.5rem;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  #progressBar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #8833ff, #cc88ff);
+    box-shadow: 0 0 8px #cc88ff;
+    transition: width 0.05s linear;
+    border-radius: 2px;
+  }
+
+  .canvas-wrap {
+    position: relative;
+    border: 1px solid rgba(180,80,255,0.2);
+    box-shadow: 0 0 40px rgba(180,80,255,0.08), inset 0 0 30px rgba(0,0,0,0.6);
+  }
+
+  canvas { display: block; }
+
+  #overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(7,2,15,0.93);
+    backdrop-filter: blur(4px);
+    gap: 0.8rem; z-index: 20;
+  }
+
+  #overlay h2 {
+    font-family: 'Orbitron', sans-serif; font-weight: 900;
+    font-size: clamp(1.3rem, 4vw, 2.2rem); letter-spacing: 0.25em;
+    color: #cc88ff; text-shadow: 0 0 24px #cc88ff;
+  }
+
+  #overlay p {
+    font-size: 0.68rem; color: rgba(180,80,255,0.4);
+    letter-spacing: 0.08em; text-align: center;
+    line-height: 2; max-width: 300px;
+  }
+
+  .pct { font-size: 1.1rem; color: rgba(180,80,255,0.75); letter-spacing: 0.2em; font-family: 'Orbitron', sans-serif; }
+
+  button {
+    padding: 0.6rem 2.2rem;
+    background: transparent; border: 1px solid #cc88ff; color: #cc88ff;
+    font-family: 'Orbitron', sans-serif; font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.22em; cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 0 12px rgba(180,80,255,0.15);
+  }
+  button:hover { background: rgba(180,80,255,0.1); box-shadow: 0 0 26px rgba(180,80,255,0.4); transform: scale(1.04); }
+
+  .hint { font-size: 0.58rem; color: rgba(180,80,255,0.22); letter-spacing: 0.1em; text-align: center; }
+
+  .attempt-row { font-size: 0.6rem; color: rgba(180,80,255,0.3); letter-spacing: 0.15em; }
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="../index.html">◀ ARCADE</a>
+<h1>CUBE DASH</h1>
+
+<div class="hud">
+  ATTEMPT <span id="attemptEl">1</span>
+  &nbsp;|&nbsp;
+  BEST <span id="bestEl">0%</span>
+  &nbsp;|&nbsp;
+  LEVEL <span id="levelEl">1</span>
+</div>
+
+<div class="progress-wrap"><div id="progressBar"></div></div>
+
+<div class="canvas-wrap">
+  <canvas id="c"></canvas>
+  <div id="overlay">
+    <h2 id="ovTitle">CUBE DASH</h2>
+    <p id="ovMsg">Jump over spikes and obstacles.<br>Reach the end to win!</p>
+    <div class="pct" id="ovPct"></div>
+    <button id="startBtn">PLAY</button>
+    <div class="hint">SPACE / CLICK / TAP to jump &nbsp;·&nbsp; Hold to jump higher</div>
+  </div>
+</div>
+
+<script>
+const canvas   = document.getElementById('c');
+const ctx      = canvas.getContext('2d');
+const overlay  = document.getElementById('overlay');
+const ovTitle  = document.getElementById('ovTitle');
+const ovMsg    = document.getElementById('ovMsg');
+const ovPct    = document.getElementById('ovPct');
+const startBtn = document.getElementById('startBtn');
+const progressBar = document.getElementById('progressBar');
+const attemptEl   = document.getElementById('attemptEl');
+const bestEl      = document.getElementById('bestEl');
+const levelEl     = document.getElementById('levelEl');
+
+const W = Math.min(Math.floor(Math.min(window.innerWidth * 0.93, window.innerHeight * 0.6) / 10) * 10, 600);
+const H = Math.round(W * 0.5);
+canvas.width  = W;
+canvas.height = H;
+
+const GROUND_Y  = Math.round(H * 0.78);
+const TILE      = Math.round(W * 0.065);
+const GRAVITY   = 0.9;
+const JUMP_V    = -13.5;
+const SPEED     = 4.8;
+
+// ══════════════════════════════════════
+//  LEVEL THEMES
+// ══════════════════════════════════════
+const THEMES = [
+  { name:'NEON VOID',    bg:'#07020f', ground:'#1a0835', accent:'#cc88ff', cube:'#dd99ff', spike:'#ff44cc', glow:'#cc88ff' },
+  { name:'FIRE ZONE',    bg:'#0f0400', ground:'#200a00', accent:'#ff6622', cube:'#ffaa44', spike:'#ff2200', glow:'#ff6622' },
+  { name:'CYBER GRID',   bg:'#00080f', ground:'#001520', accent:'#00ccff', cube:'#44ddff', spike:'#0088ff', glow:'#00ccff' },
+  { name:'ACID RAIN',    bg:'#020f02', ground:'#041a04', accent:'#88ff44', cube:'#aaffaa', spike:'#44ff00', glow:'#88ff44' },
+  { name:'SOLAR DRIFT',  bg:'#0f0a00', ground:'#1a1200', accent:'#ffdd00', cube:'#ffee66', spike:'#ffaa00', glow:'#ffdd00' },
+];
+
+// ══════════════════════════════════════
+//  PROCEDURAL LEVEL GENERATION
+// ══════════════════════════════════════
+function generateLevel(seed) {
+  const rng = mulberry32(seed);
+  const segments = [];
+  let x = W * 1.5; // start offscreen
+
+  // Safe zone at start
+  segments.push({ type:'flat', x, len: Math.round(W * 0.6) });
+  x += Math.round(W * 0.6);
+
+  const targetLen = W * 18; // total level length
+  while (x < targetLen) {
+    const r = rng();
+    if (r < 0.30) {
+      // Single spike — generous run-up and landing space
+      segments.push({ type:'spike', x, count: 1 });
+      x += TILE * (5 + Math.floor(rng() * 3));
+    } else if (r < 0.48) {
+      // Spike cluster (2 only — never 3 in a row)
+      const count = 2;
+      segments.push({ type:'spike', x, count });
+      x += TILE * (count + 4 + Math.floor(rng() * 3));
+    } else if (r < 0.65) {
+      // Platform — low enough to actually land on
+      const pw = TILE * (3 + Math.floor(rng() * 2));
+      const ph = GROUND_Y - TILE * (2 + Math.floor(rng() * 2));
+      segments.push({ type:'platform', x, w: pw, y: ph });
+      x += pw + TILE * (4 + Math.floor(rng() * 3));
+    } else if (r < 0.78) {
+      // Gap — narrow enough to clear with a normal jump
+      segments.push({ type:'gap', x, w: TILE * (2 + Math.floor(rng() * 1)) });
+      x += TILE * (4 + Math.floor(rng() * 2));
+    } else {
+      // Flat breather
+      segments.push({ type:'flat', x, len: TILE * (5 + Math.floor(rng() * 5)) });
+      x += TILE * (6 + Math.floor(rng() * 5));
+    }
+  }
+
+  // Safe end zone
+  segments.push({ type:'flat', x, len: Math.round(W * 0.8) });
+  const totalLen = x + Math.round(W * 0.8);
+
+  return { segments, totalLen, seed };
+}
+
+// Simple seeded RNG
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// ══════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════
+let state     = 'idle';
+let attempt   = 1;
+let bestPct   = 0;
+let currentLevel = 1;
+let theme, level;
+let camX, player, particles, bgStars;
+let jumpHeld  = false;
+let rafId;
+let deathFlash = 0;
+let winFlash   = 0;
+
+function pickTheme(lv) { return THEMES[(lv - 1) % THEMES.length]; }
+
+function initLevel(lv) {
+  currentLevel = lv;
+  theme = pickTheme(lv);
+  level = generateLevel(lv * 9999 + 42);
+  levelEl.textContent = lv;
+  document.body.style.background = theme.bg;
+}
+
+function initRun() {
+  camX = 0;
+  particles = [];
+  player = {
+    x: W * 0.22,
+    y: GROUND_Y - TILE,
+    vy: 0,
+    rot: 0,
+    onGround: false,
+    dead: false,
+    trail: [],
+  };
+
+  // Background stars
+  const rng = mulberry32(currentLevel * 17 + 3);
+  bgStars = Array.from({ length: 40 }, () => ({
+    x: rng() * W, y: rng() * GROUND_Y * 0.9,
+    r: 0.5 + rng() * 1.5, spd: 0.2 + rng() * 0.6,
+    alpha: 0.2 + rng() * 0.5,
+  }));
+
+  deathFlash = 0; winFlash = 0;
+}
+
+// ══════════════════════════════════════
+//  COLLISION
+// ══════════════════════════════════════
+function getObstacles() {
+  const obs = [];
+  const margin = W * 0.5;
+
+  for (const seg of level.segments) {
+    if (seg.x - camX > W + margin) continue;
+    if (seg.x - camX + (seg.len || seg.w || TILE * seg.count || TILE) < -margin) continue;
+
+    if (seg.type === 'spike') {
+      for (let i = 0; i < seg.count; i++) {
+        obs.push({ type:'spike', x: seg.x + i * TILE, y: GROUND_Y - TILE, w: TILE, h: TILE });
+      }
+    } else if (seg.type === 'platform') {
+      obs.push({ type:'platform', x: seg.x, y: seg.y, w: seg.w, h: TILE });
+    } else if (seg.type === 'gap') {
+      obs.push({ type:'gap', x: seg.x, y: GROUND_Y, w: seg.w, h: H });
+    }
+  }
+  return obs;
+}
+
+function playerRect() {
+  const pad = 3;
+  return { x: player.x + pad, y: player.y + pad, w: TILE - pad*2, h: TILE - pad*2 };
+}
+
+function rectsOverlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x &&
+         a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+// ══════════════════════════════════════
+//  UPDATE
+// ══════════════════════════════════════
+const keys = {};
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); keys.space = true; }
+});
+window.addEventListener('keyup', e => {
+  if (e.code === 'Space') keys.space = false;
+});
+
+let justJumped = false;
+
+function tryJump() {
+  if (player.onGround && !player.dead) {
+    player.vy = JUMP_V;
+    player.onGround = false;
+    justJumped = true;
+    spawnJumpParticles();
+  }
+}
+
+canvas.addEventListener('mousedown',  tryJump);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); tryJump(); }, { passive: false });
+canvas.addEventListener('touchend',   e => e.preventDefault(), { passive: false });
+startBtn.addEventListener('click',    startGame);
+
+function update() {
+  if (player.dead) {
+    deathFlash = Math.max(0, deathFlash - 1);
+    particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.15; p.life-=p.decay; });
+    particles = particles.filter(p => p.life > 0);
+    return;
+  }
+  if (winFlash > 0) { winFlash--; return; }
+
+  // Jump input — space held gives extra height
+  if ((keys.space) && player.onGround) tryJump();
+  justJumped = false; // hold-jump removed — single consistent arc
+
+  // Physics
+  player.vy += GRAVITY;
+  player.y  += player.vy;
+
+  // Camera scrolls rightward
+  camX += SPEED;
+
+  // Progress
+  const pct = Math.min(100, Math.round((camX / (level.totalLen - W)) * 100));
+  progressBar.style.width = pct + '%';
+  if (pct > bestPct) { bestPct = pct; bestEl.textContent = bestPct + '%'; }
+
+  // Win condition
+  if (camX >= level.totalLen - W - TILE * 2) {
+    winGame(); return;
+  }
+
+  player.onGround = false;
+
+  // Ground collision
+  if (player.y + TILE >= GROUND_Y) {
+    player.y = GROUND_Y - TILE;
+    player.vy = 0;
+    player.onGround = true;
+  }
+
+  // Obstacle collision
+  const pr = playerRect();
+  for (const obs of getObstacles()) {
+    const sr = { x: obs.x - camX, y: obs.y, w: obs.w, h: obs.h };
+    if (!rectsOverlap(pr, sr)) continue;
+
+    if (obs.type === 'platform') {
+      // Land on top of platform
+      const fromTop = (pr.y + pr.h) - sr.y;
+      if (fromTop < 14 && player.vy >= 0) {
+        player.y = sr.y - TILE;
+        player.vy = 0;
+        player.onGround = true;
+      } else {
+        die(); return;
+      }
+    } else if (obs.type === 'spike' || obs.type === 'gap') {
+      die(); return;
+    }
+  }
+
+  // Rotation
+  player.rot += player.onGround ? 0.15 : 0.12;
+
+  // Trail
+  player.trail.push({ x: player.x, y: player.y, rot: player.rot });
+  if (player.trail.length > 8) player.trail.shift();
+
+  // Update stars
+  bgStars.forEach(s => { s.x -= s.spd; if (s.x < 0) s.x = W; });
+
+  // Particles
+  particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.06; p.life-=p.decay; });
+  particles = particles.filter(p => p.life > 0);
+}
+
+// ══════════════════════════════════════
+//  DRAW
+// ══════════════════════════════════════
+function draw() {
+  // Background
+  ctx.fillStyle = theme.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars / BG particles
+  bgStars.forEach(s => {
+    ctx.globalAlpha = s.alpha;
+    ctx.fillStyle   = theme.accent;
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Ground
+  const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, H);
+  groundGrad.addColorStop(0, theme.ground);
+  groundGrad.addColorStop(1, theme.bg);
+  ctx.fillStyle = groundGrad;
+  ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+
+  // Ground top line glow
+  ctx.shadowColor = theme.accent;
+  ctx.shadowBlur  = 10;
+  ctx.strokeStyle = theme.accent;
+  ctx.lineWidth   = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); ctx.stroke();
+  ctx.shadowBlur  = 0;
+
+  // Ground grid lines
+  ctx.strokeStyle = theme.accent + '22';
+  ctx.lineWidth   = 0.5;
+  const gOff = camX % TILE;
+  for (let x = -gOff % TILE; x < W; x += TILE) {
+    ctx.beginPath(); ctx.moveTo(x, GROUND_Y); ctx.lineTo(x, H); ctx.stroke();
+  }
+
+  // Draw obstacles
+  drawObstacles();
+
+  // Player trail
+  player.trail.forEach((t, i) => {
+    const a = (i / player.trail.length) * 0.3;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.translate(player.x + TILE/2, t.y + TILE/2);
+    ctx.rotate(t.rot);
+    ctx.fillStyle = theme.cube;
+    ctx.fillRect(-TILE/2, -TILE/2, TILE, TILE);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  });
+
+  // Player cube
+  if (!player.dead) drawCube(player.x, player.y, player.rot);
+
+  // Particles
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle   = p.color;
+    ctx.shadowColor = p.color; ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+
+  // Death flash
+  if (deathFlash > 0) {
+    ctx.fillStyle = `rgba(255,60,60,${(deathFlash/20)*0.35})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+  // Win flash
+  if (winFlash > 0) {
+    ctx.fillStyle = `rgba(255,255,255,${(winFlash/30)*0.25})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
+function drawCube(x, y, rot) {
+  ctx.save();
+  ctx.translate(x + TILE/2, y + TILE/2);
+  ctx.rotate(rot);
+
+  // Shadow
+  ctx.shadowColor = theme.glow;
+  ctx.shadowBlur  = 18;
+
+  // Body
+  ctx.fillStyle = theme.cube;
+  ctx.fillRect(-TILE/2, -TILE/2, TILE, TILE);
+
+  // Inner square
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = theme.accent;
+  ctx.lineWidth   = 1.5;
+  const p = TILE * 0.2;
+  ctx.strokeRect(-TILE/2 + p, -TILE/2 + p, TILE - p*2, TILE - p*2);
+
+  // Corner dots
+  ctx.fillStyle = theme.accent;
+  const c = TILE * 0.28;
+  [[-c,-c],[c,-c],[-c,c],[c,c]].forEach(([dx,dy]) => {
+    ctx.beginPath(); ctx.arc(dx, dy, 1.8, 0, Math.PI*2); ctx.fill();
+  });
+
+  // Shine
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.beginPath();
+  ctx.moveTo(-TILE/2, -TILE/2);
+  ctx.lineTo(0, -TILE/2);
+  ctx.lineTo(-TILE/2, 0);
+  ctx.closePath(); ctx.fill();
+
+  ctx.restore();
+  ctx.shadowBlur = 0;
+}
+
+function drawObstacles() {
+  for (const seg of level.segments) {
+    const sx = seg.x - camX;
+    if (sx > W + TILE * 5 || sx + (seg.len || seg.w || TILE * (seg.count||1)) < -TILE * 2) continue;
+
+    if (seg.type === 'spike') {
+      for (let i = 0; i < seg.count; i++) {
+        drawSpike(sx + i * TILE, GROUND_Y);
+      }
+    } else if (seg.type === 'platform') {
+      drawPlatform(sx, seg.y, seg.w);
+    }
+    // gaps are just absence of ground — no drawing needed
+  }
+}
+
+function drawSpike(x, baseY) {
+  ctx.save();
+  ctx.shadowColor = theme.spike;
+  ctx.shadowBlur  = 10;
+  ctx.fillStyle   = theme.spike;
+  ctx.beginPath();
+  ctx.moveTo(x,           baseY);
+  ctx.lineTo(x + TILE/2,  baseY - TILE);
+  ctx.lineTo(x + TILE,    baseY);
+  ctx.closePath();
+  ctx.fill();
+
+  // Shine edge
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth   = 1;
+  ctx.beginPath();
+  ctx.moveTo(x, baseY);
+  ctx.lineTo(x + TILE/2, baseY - TILE);
+  ctx.stroke();
+  ctx.restore();
+  ctx.shadowBlur = 0;
+}
+
+function drawPlatform(x, y, w) {
+  ctx.save();
+  ctx.shadowColor = theme.accent;
+  ctx.shadowBlur  = 10;
+  ctx.fillStyle   = theme.ground;
+  ctx.fillRect(x, y, w, TILE);
+  ctx.strokeStyle = theme.accent;
+  ctx.lineWidth   = 1.5;
+  ctx.strokeRect(x, y, w, TILE);
+
+  // Grid pattern on platform
+  ctx.strokeStyle = theme.accent + '44';
+  ctx.lineWidth   = 0.5;
+  for (let px = x; px < x + w; px += TILE) {
+    ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(px, y + TILE); ctx.stroke();
+  }
+  ctx.restore();
+  ctx.shadowBlur = 0;
+}
+
+// ══════════════════════════════════════
+//  PARTICLES
+// ══════════════════════════════════════
+function spawnJumpParticles() {
+  for (let i = 0; i < 6; i++) {
+    particles.push({
+      x: player.x + TILE/2 + (Math.random()-0.5)*TILE,
+      y: player.y + TILE,
+      vx: (Math.random()-0.5)*3, vy: 1 + Math.random()*2,
+      life: 1, decay: 0.07 + Math.random()*0.05,
+      r: 2 + Math.random()*2, color: theme.accent,
+    });
+  }
+}
+
+function spawnDeathParticles() {
+  for (let i = 0; i < 22; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const s = 2 + Math.random() * 6;
+    particles.push({
+      x: player.x + TILE/2, y: player.y + TILE/2,
+      vx: Math.cos(a)*s, vy: Math.sin(a)*s - 2,
+      life: 1, decay: 0.025 + Math.random()*0.03,
+      r: 2 + Math.random()*4, color: i%2===0 ? theme.cube : theme.spike,
+    });
+  }
+}
+
+// ══════════════════════════════════════
+//  GAME FLOW
+// ══════════════════════════════════════
+function die() {
+  if (player.dead) return;
+  player.dead = true;
+  deathFlash  = 20;
+  spawnDeathParticles();
+
+  const pct = Math.min(100, Math.round((camX / (level.totalLen - W)) * 100));
+  setTimeout(() => {
+    attempt++;
+    attemptEl.textContent = attempt;
+    ovTitle.textContent = pct < 10 ? 'KEEP GOING' : pct < 50 ? `${pct}% — SO CLOSE` : pct < 90 ? `${pct}% — AMAZING` : `${pct}% — HEARTBREAK`;
+    ovMsg.textContent   = '';
+    ovPct.textContent   = `${pct}%`;
+    startBtn.textContent = 'RETRY';
+    overlay.style.display = 'flex';
+    state = 'dead';
+  }, 700);
+}
+
+function winGame() {
+  winFlash = 30;
+  bestPct  = 100;
+  bestEl.textContent = '100%';
+  progressBar.style.width = '100%';
+
+  setTimeout(() => {
+    ovTitle.textContent  = '🏆 COMPLETE!';
+    ovMsg.textContent    = `Level ${currentLevel} cleared!`;
+    ovPct.textContent    = '100%';
+    startBtn.textContent = 'NEXT LEVEL';
+    overlay.style.display = 'flex';
+    state = 'win';
+  }, 500);
+}
+
+function startGame() {
+  if (state === 'win') {
+    bestPct = 0;
+    attempt = 1;
+    initLevel(currentLevel + 1);
+  } else if (state === 'idle') {
+    initLevel(1);
+    attempt = 1;
+    bestPct = 0;
+  }
+  // else retry same level
+
+  bestEl.textContent    = '0%';
+  attemptEl.textContent = attempt;
+  initRun();
+  overlay.style.display = 'none';
+  state = 'playing';
+}
+
+// ══════════════════════════════════════
+//  LOOP
+// ══════════════════════════════════════
+function loop() {
+  if (state === 'playing' || state === 'dead') {
+    update();
+    draw();
+  }
+  rafId = requestAnimationFrame(loop);
+}
+
+// Init
+initLevel(1);
+initRun();
+
+// Idle draw
+(function idleDraw() {
+  ctx.fillStyle = theme.bg;
+  ctx.fillRect(0, 0, W, H);
+  const g = ctx.createLinearGradient(0, GROUND_Y, 0, H);
+  g.addColorStop(0, theme.ground); g.addColorStop(1, theme.bg);
+  ctx.fillStyle = g; ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+  ctx.strokeStyle = theme.accent; ctx.lineWidth = 1.5;
+  ctx.shadowColor = theme.accent; ctx.shadowBlur = 10;
+  ctx.beginPath(); ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); ctx.stroke();
+  ctx.shadowBlur = 0;
+  drawCube(W*0.22, GROUND_Y - TILE, 0.3);
+})();
+
+loop();
+</script>
+</body>
+</html>
