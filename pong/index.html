@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PONG</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #050508;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Share Tech Mono', monospace;
+    color: #fff;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
+    pointer-events: none; z-index: 10;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.9) 100%);
+    pointer-events: none; z-index: 9;
+  }
+
+  .back-btn {
+    position: fixed; top: 1rem; left: 1rem; z-index: 50;
+    padding: 0.4rem 0.9rem;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.3);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.15em;
+    text-decoration: none; transition: all 0.2s;
+  }
+  .back-btn:hover { border-color: rgba(255,255,255,0.6); color: rgba(255,255,255,0.8); }
+
+  h1 {
+    font-family: 'Orbitron', sans-serif; font-weight: 900;
+    font-size: clamp(1.8rem, 5vw, 2.8rem); letter-spacing: 0.5em;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(255,255,255,0.6), 0 0 80px rgba(255,255,255,0.2);
+    margin-bottom: 0.5rem;
+  }
+
+  .scoreboard {
+    display: flex; align-items: center; gap: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Orbitron', sans-serif; font-weight: 700;
+  }
+
+  .score {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    min-width: 2ch; text-align: center;
+    transition: transform 0.1s;
+  }
+  .score.pulse { animation: scorePulse 0.15s ease-out; }
+  @keyframes scorePulse { 0%{transform:scale(1.5)} 100%{transform:scale(1)} }
+
+  .score-left  { color: #ff4466; text-shadow: 0 0 20px #ff4466, 0 0 50px rgba(255,68,102,0.4); }
+  .score-right { color: #44aaff; text-shadow: 0 0 20px #44aaff, 0 0 50px rgba(68,170,255,0.4); }
+  .score-sep   { color: rgba(255,255,255,0.2); font-size: 2.5rem; }
+
+  .mode-label {
+    font-size: 0.6rem; letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.2); margin-bottom: 0.4rem;
+  }
+
+  .canvas-wrap {
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 60px rgba(255,255,255,0.03);
+  }
+
+  canvas { display: block; }
+
+  #overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(5,5,8,0.93);
+    backdrop-filter: blur(4px); gap: 0.75rem;
+    z-index: 20;
+  }
+
+  #overlay h2 {
+    font-family: 'Orbitron', sans-serif; font-weight: 900;
+    font-size: clamp(1.2rem, 4vw, 2rem); letter-spacing: 0.25em;
+    color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.8);
+  }
+
+  #overlay p {
+    font-size: 0.68rem; color: rgba(255,255,255,0.28);
+    letter-spacing: 0.08em; text-align: center;
+    line-height: 2; max-width: 280px;
+  }
+
+  .winner-msg {
+    font-family: 'Orbitron', sans-serif; font-size: 0.9rem;
+    letter-spacing: 0.15em; font-weight: 700;
+  }
+  .winner-left  { color: #ff4466; text-shadow: 0 0 15px #ff4466; }
+  .winner-right { color: #44aaff; text-shadow: 0 0 15px #44aaff; }
+
+  .btn-row { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; }
+
+  button {
+    padding: 0.55rem 1.5rem;
+    background: transparent; border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.7);
+    font-family: 'Orbitron', sans-serif; font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.18em; cursor: pointer; transition: all 0.2s;
+  }
+  button:hover { background: rgba(255,255,255,0.06); border-color: #fff; color: #fff; box-shadow: 0 0 18px rgba(255,255,255,0.15); }
+  button.active { background: rgba(255,255,255,0.08); border-color: #fff; color: #fff; }
+
+  .serve-btn {
+    border-color: rgba(255,255,255,0.5) !important;
+    color: #fff !important;
+    padding: 0.6rem 2.2rem !important;
+    font-size: 0.7rem !important;
+  }
+
+  .hint { font-size: 0.57rem; color: rgba(255,255,255,0.16); letter-spacing: 0.08em; text-align: center; line-height: 2.2; }
+  .divider { width: 30px; height: 1px; background: rgba(255,255,255,0.1); }
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="../index.html">◀ ARCADE</a>
+<h1>PONG</h1>
+
+<div class="scoreboard">
+  <span class="score score-left"  id="scoreL">0</span>
+  <span class="score-sep">:</span>
+  <span class="score score-right" id="scoreR">0</span>
+</div>
+<div class="mode-label" id="modeLabel">VS CPU</div>
+
+<div class="canvas-wrap">
+  <canvas id="c"></canvas>
+  <div id="overlay">
+    <h2 id="ovTitle">PONG</h2>
+    <div class="divider"></div>
+    <p id="ovMsg">Classic paddle battle. First to 7 wins.</p>
+    <div id="winnerMsg" class="winner-msg" style="display:none"></div>
+    <div class="btn-row">
+      <button id="btn1p" class="active">1 PLAYER</button>
+      <button id="btn2p">2 PLAYERS</button>
+    </div>
+    <div class="btn-row">
+      <button id="startBtn" class="serve-btn">SERVE</button>
+    </div>
+    <div class="hint" id="ovHint">
+      W / S &nbsp;—&nbsp; Move paddle<br>First to 7 wins
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas  = document.getElementById('c');
+const ctx     = canvas.getContext('2d');
+const scoreLE = document.getElementById('scoreL');
+const scoreRE = document.getElementById('scoreR');
+const modeLabel = document.getElementById('modeLabel');
+const overlay   = document.getElementById('overlay');
+const ovTitle   = document.getElementById('ovTitle');
+const ovMsg     = document.getElementById('ovMsg');
+const winnerMsg = document.getElementById('winnerMsg');
+const startBtn  = document.getElementById('startBtn');
+const btn1p     = document.getElementById('btn1p');
+const btn2p     = document.getElementById('btn2p');
+const ovHint    = document.getElementById('ovHint');
+
+const W = Math.min(Math.floor(Math.min(window.innerWidth * 0.92, window.innerHeight * 0.62) / 10) * 10, 640);
+const H = Math.round(W * 0.58);
+canvas.width  = W;
+canvas.height = H;
+
+const PAD_W      = Math.max(8,  Math.round(W * 0.018));
+const PAD_H      = Math.round(H * 0.2);
+const PAD_MARGIN = Math.round(W * 0.028);
+const BALL_R     = Math.max(5,  Math.round(W * 0.013));
+const WIN_SCORE  = 7;
+
+// ── Particles ──
+const particles = [];
+function spawnParticles(x, y, color, count=8) {
+  for (let i=0; i<count; i++) {
+    const a = Math.random()*Math.PI*2, spd = 1.5+Math.random()*4;
+    particles.push({ x, y, vx:Math.cos(a)*spd, vy:Math.sin(a)*spd, life:1, decay:0.035+Math.random()*0.04, r:2+Math.random()*3, color });
+  }
+}
+function updateParticles() {
+  for (let i=particles.length-1; i>=0; i--) {
+    const p=particles[i];
+    p.x+=p.vx; p.y+=p.vy; p.vx*=0.92; p.vy*=0.92; p.life-=p.decay;
+    if (p.life<=0) particles.splice(i,1);
+  }
+}
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life * 0.9;
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = p.color; ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r*p.life, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha=1; ctx.shadowBlur=0;
+}
+
+// ── State ──
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.key]=true;
+  if (['ArrowUp','ArrowDown','w','s','W','S',' '].includes(e.key)) e.preventDefault();
+});
+window.addEventListener('keyup', e => { keys[e.key]=false; });
+
+let mode='1p', state='idle';
+let scoreL=0, scoreR=0;
+let ball, padL, padR;
+let flashTimer=0, flashSide=null;
+let rafId;
+
+function initGame() {
+  scoreL=0; scoreR=0;
+  updateScoreDisplay();
+  padL={ y: H/2-PAD_H/2 };
+  padR={ y: H/2-PAD_H/2 };
+  particles.length=0;
+  resetBall(Math.random()<0.5?1:-1);
+}
+
+function resetBall(dir) {
+  const spread = 0.3;
+  const angle = (Math.random()*spread - spread/2);
+  const spd = W*0.006;
+  ball = {
+    x: W/2, y: H/2,
+    vx: Math.cos(angle)*spd*dir,
+    vy: Math.sin(angle)*spd,
+    speed: spd,
+    trail: [],
+  };
+}
+
+// ── CPU ──
+let cpuTargetY = 0;
+let cpuReactTimer = 0;
+const CPU_REACT_FRAMES = 30;
+const CPU_ERROR = 0;
+const CPU_MAX_SPEED = 0;
+
+function updateCPU() {
+  const PAD_H_local = PAD_H;
+  if (!cpuTargetY) cpuTargetY = H / 2;
+  const CPU_ERR = PAD_H_local * 0.6;
+  const CPU_SPD = H * 0.0095;
+  cpuReactTimer++;
+  if (cpuReactTimer >= 30) {
+    cpuReactTimer = 0;
+    if (ball.vx > 0) {
+      const t = (padR.x - ball.x) / (ball.vx || 1);
+      let py = ball.y + ball.vy * t;
+      if (py < 0) py = -py;
+      if (py > H) py = 2 * H - py;
+      py = Math.max(0, Math.min(H, py));
+      cpuTargetY = py + (Math.random() * 2 - 1) * CPU_ERR;
+    } else {
+      cpuTargetY = H / 2;
+    }
+  }
+  const mid = padR.y + PAD_H_local / 2;
+  const diff = cpuTargetY - mid;
+  if (Math.abs(diff) > 4) {
+    padR.y += Math.sign(diff) * Math.min(Math.abs(diff), CPU_SPD);
+    padR.y = Math.max(0, Math.min(H - PAD_H_local, padR.y));
+  }
+}
+
+// ── Update ──
+function update() {
+  if (state!=='playing') return;
+
+  const padSpd = H*0.017;
+  if (keys['w']||keys['W']) padL.y = Math.max(0, padL.y-padSpd);
+  if (keys['s']||keys['S']) padL.y = Math.min(H-PAD_H, padL.y+padSpd);
+
+  if (mode==='2p') {
+    if (keys['ArrowUp'])   padR.y = Math.max(0, padR.y-padSpd);
+    if (keys['ArrowDown']) padR.y = Math.min(H-PAD_H, padR.y+padSpd);
+  } else {
+    updateCPU();
+  }
+
+  // Trail
+  ball.trail.push({x:ball.x, y:ball.y});
+  if (ball.trail.length>12) ball.trail.shift();
+
+  ball.x+=ball.vx; ball.y+=ball.vy;
+
+  // Top / bottom
+  if (ball.y-BALL_R<=0)   { ball.y=BALL_R;    ball.vy=Math.abs(ball.vy);  spawnParticles(ball.x,0,'#ffffff',4); }
+  if (ball.y+BALL_R>=H)   { ball.y=H-BALL_R;  ball.vy=-Math.abs(ball.vy); spawnParticles(ball.x,H,'#ffffff',4); }
+
+  // Left paddle
+  const lx = PAD_MARGIN+PAD_W;
+  if (ball.vx<0 && ball.x-BALL_R<=lx && ball.x-BALL_R>=PAD_MARGIN && ball.y>=padL.y-BALL_R && ball.y<=padL.y+PAD_H+BALL_R) {
+    ball.x=lx+BALL_R;
+    const hit=(ball.y-(padL.y+PAD_H/2))/(PAD_H/2);
+    const ang=hit*(Math.PI/3.2);
+    ball.speed=Math.min(ball.speed*1.05, W*0.013);
+    ball.vx= Math.cos(ang)*ball.speed;
+    ball.vy= Math.sin(ang)*ball.speed;
+    spawnParticles(ball.x, ball.y, '#ff4466', 12);
+    flashSide='left'; flashTimer=8;
+  }
+
+  // Right paddle
+  const rx = W-PAD_MARGIN-PAD_W;
+  if (ball.vx>0 && ball.x+BALL_R>=rx && ball.x+BALL_R<=W-PAD_MARGIN && ball.y>=padR.y-BALL_R && ball.y<=padR.y+PAD_H+BALL_R) {
+    ball.x=rx-BALL_R;
+    const hit=(ball.y-(padR.y+PAD_H/2))/(PAD_H/2);
+    const ang=hit*(Math.PI/3.2);
+    ball.speed=Math.min(ball.speed*1.05, W*0.013);
+    ball.vx=-Math.cos(ang)*ball.speed;
+    ball.vy= Math.sin(ang)*ball.speed;
+    spawnParticles(ball.x, ball.y, '#44aaff', 12);
+    flashSide='right'; flashTimer=8;
+  }
+
+  // Scoring
+  if (ball.x < -BALL_R) {
+    scoreR++; updateScoreDisplay('right');
+    spawnParticles(W*0.1, ball.y, '#44aaff', 22);
+    if (!checkWin()) { state='scored'; setTimeout(()=>{ resetBall(1); state='playing'; }, 800); }
+  }
+  if (ball.x > W+BALL_R) {
+    scoreL++; updateScoreDisplay('left');
+    spawnParticles(W*0.9, ball.y, '#ff4466', 22);
+    if (!checkWin()) { state='scored'; setTimeout(()=>{ resetBall(-1); state='playing'; }, 800); }
+  }
+
+  if (flashTimer>0) flashTimer--;
+  updateParticles();
+}
+
+function checkWin() {
+  if (scoreL<WIN_SCORE && scoreR<WIN_SCORE) return false;
+  state='gameover';
+  const leftWon=scoreL>=WIN_SCORE;
+  ovTitle.textContent='GAME OVER';
+  ovMsg.textContent='';
+  winnerMsg.style.display='block';
+  winnerMsg.textContent = mode==='1p'
+    ? (leftWon?'▶  YOU WIN!':'▶  CPU WINS')
+    : (leftWon?'▶  PLAYER 1 WINS':'▶  PLAYER 2 WINS');
+  winnerMsg.className='winner-msg '+(leftWon?'winner-left':'winner-right');
+  startBtn.textContent='PLAY AGAIN';
+  overlay.style.display='flex';
+  return true;
+}
+
+function updateScoreDisplay(side) {
+  scoreLE.textContent=scoreL; scoreRE.textContent=scoreR;
+  if (side==='left')  { scoreLE.classList.remove('pulse'); void scoreLE.offsetWidth; scoreLE.classList.add('pulse'); }
+  if (side==='right') { scoreRE.classList.remove('pulse'); void scoreRE.offsetWidth; scoreRE.classList.add('pulse'); }
+}
+
+// ── Draw ──
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#050508'; ctx.fillRect(0,0,W,H);
+
+  // Screen flash on hit
+  if (flashTimer>0) {
+    const a=(flashTimer/8)*0.09;
+    ctx.fillStyle=flashSide==='left'?`rgba(255,68,102,${a})`:`rgba(68,170,255,${a})`;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  // Centre line
+  ctx.setLineDash([H*0.045, H*0.032]);
+  ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Centre circle
+  ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(W/2,H/2,H*0.11,0,Math.PI*2); ctx.stroke();
+
+  // Paddles
+  drawPaddle(PAD_MARGIN, padL.y, '#ff4466');
+  drawPaddle(W-PAD_MARGIN-PAD_W, padR.y, '#44aaff');
+
+  // Ball trail
+  if (state==='playing'||state==='scored') {
+    ball.trail.forEach((pt,i) => {
+      const pct=i/ball.trail.length;
+      ctx.globalAlpha=pct*0.22;
+      ctx.fillStyle='#ffffff';
+      ctx.beginPath(); ctx.arc(pt.x,pt.y,BALL_R*pct*0.7,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha=1;
+
+    // Ball
+    ctx.shadowColor='#ffffff'; ctx.shadowBlur=24;
+    ctx.fillStyle='#ffffff';
+    ctx.beginPath(); ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur=0;
+  }
+
+  drawParticles();
+}
+
+function drawPaddle(x, y, color) {
+  ctx.shadowColor=color; ctx.shadowBlur=22;
+  ctx.fillStyle=color;
+  ctx.beginPath(); ctx.roundRect(x,y,PAD_W,PAD_H,PAD_W/2); ctx.fill();
+  // Inner shine
+  ctx.shadowBlur=0;
+  ctx.fillStyle='rgba(255,255,255,0.22)';
+  ctx.beginPath(); ctx.roundRect(x+1,y+2,PAD_W-2,PAD_H*0.3,PAD_W/2); ctx.fill();
+}
+
+// ── Loop ──
+function loop() { update(); draw(); rafId=requestAnimationFrame(loop); }
+
+// ── UI ──
+btn1p.addEventListener('click', ()=>{
+  mode='1p'; btn1p.classList.add('active'); btn2p.classList.remove('active');
+  modeLabel.textContent='VS CPU';
+  ovHint.innerHTML='W / S &nbsp;—&nbsp; Move paddle<br>First to 7 wins';
+});
+btn2p.addEventListener('click', ()=>{
+  mode='2p'; btn2p.classList.add('active'); btn1p.classList.remove('active');
+  modeLabel.textContent='2 PLAYERS';
+  ovHint.innerHTML='W / S &nbsp;—&nbsp; Left &nbsp;·&nbsp; ↑ / ↓ &nbsp;—&nbsp; Right<br>First to 7 wins';
+});
+startBtn.addEventListener('click', ()=>{
+  winnerMsg.style.display='none';
+  ovTitle.textContent='PONG';
+  ovMsg.textContent='Classic paddle battle. First to 7 wins.';
+  startBtn.textContent='SERVE';
+  initGame();
+  state='playing';
+  overlay.style.display='none';
+});
+
+initGame();
+loop();
+</script>
+</body>
+</html>
