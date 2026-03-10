@@ -240,9 +240,13 @@ let mouseX = -1, mouseY = -1, prevMouseX = -1, prevMouseY = -1, mouseDown = fals
 function spawnItem() {
   const isBomb = Math.random() < 0.12 + level * 0.01;
   const fruit  = FRUITS[Math.floor(Math.random() * FRUITS.length)];
-  const x      = fruit.radius + Math.random() * (W - fruit.radius * 2);
+  // Keep spawn away from edges so fruits don't immediately fly off-screen
+  const margin = W * 0.18;
+  const x      = margin + Math.random() * (W - margin * 2);
   const vy     = -(7 + Math.random() * 5 + level * 0.3);
-  const vx     = (Math.random() - 0.5) * 3;
+  // Bias vx inward: fruits near left edge go right, near right edge go left
+  const inward = (W / 2 - x) / (W / 2);
+  const vx     = inward * 1.2 + (Math.random() - 0.5) * 1.5;
 
   return {
     x, y: H + 60,
