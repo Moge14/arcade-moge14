@@ -96,6 +96,15 @@
     font-family: 'Share Tech Mono', monospace;
   }
 
+  #hudTopLeft {
+    pointer-events: all;
+    cursor: default;
+  }
+
+  #hudTopLeft a {
+    cursor: pointer;
+  }
+
   #topBar {
     position:absolute;
     top:12px; left:16px; right:16px;
@@ -311,9 +320,11 @@
 
   <div id="hud">
     <div id="topBar">
-      <div>
+      <div id="hudTopLeft" style="display:flex;flex-direction:column;gap:6px"
+        onmouseenter="hudHovered=true" onmouseleave="hudHovered=false">
+        <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--nv-dim);text-decoration:none;font-size:10px;letter-spacing:2px;border:1px solid var(--nv-dark);padding:4px 10px;transition:all 0.15s;" onmouseover="this.style.color='var(--nv-bright)';this.style.borderColor='var(--nv-dim)'" onmouseout="this.style.color='var(--nv-dim)';this.style.borderColor='var(--nv-dark)'">&#9664; ARCADE</a>
         <div id="title">AC-130U SPOOKY</div>
-        <div style="margin-top:4px;font-size:10px;letter-spacing:2px;color:var(--nv-dim)">DANGER CLOSE</div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--nv-dim)">DANGER CLOSE</div>
       </div>
       <div id="compass">W &nbsp; NW &nbsp; N &nbsp; NE &nbsp; E</div>
       <div id="scorePanel">
@@ -422,6 +433,7 @@ let weaponAmmo      = [50,15,1];
 let reloadTimers    = [0,0,0];
 let isReloading     = [false,false,false];
 let mouseHeld       = false;
+let hudHovered      = false;
 let screenShake = {x:0, y:0, intensity:0};
 
 // Terrain / ground scroll
@@ -688,7 +700,7 @@ function drawParticles() {
     ctx.globalAlpha = p.life;
     ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size*p.life, 0, Math.PI*2);
+    ctx.arc(p.x, p.y, Math.max(0, p.size*p.life), 0, Math.PI*2);
     ctx.fill();
   });
 
@@ -715,6 +727,7 @@ function drawParticles() {
 
 // PROJECTILE (tracer visual)
 function fireWeapon(wx, wy) {
+  if(hudHovered) return;
   const w = WEAPONS[selectedWeapon];
   if(weaponCooldowns[selectedWeapon] > 0) return;
   if(isReloading[selectedWeapon]) return;
@@ -823,12 +836,13 @@ function drawProjectiles() {
 // CROSSHAIR
 function drawCrosshair() {
   chCtx.clearRect(0,0,W,H);
+  if(hudHovered) return; // no crosshair over HUD buttons
   const x = mouseX, y = mouseY;
   const w = WEAPONS[selectedWeapon];
   const cd = weaponCooldowns[selectedWeapon];
   const ready = cd === 0 && !isReloading[selectedWeapon] && weaponAmmo[selectedWeapon] > 0;
   const color = isReloading[selectedWeapon] ? '#ff8c00' : weaponAmmo[selectedWeapon]===0 ? '#ff4400' : ready ? w.color : '#ffcc00';
-  const r = w.aoeRadius;
+  const r = Math.max(0, w.aoeRadius);
 
   chCtx.strokeStyle = color;
   chCtx.shadowColor = color;
@@ -837,9 +851,11 @@ function drawCrosshair() {
   chCtx.globalAlpha = 0.8;
 
   // Outer circle
-  chCtx.beginPath();
-  chCtx.arc(x, y, r, 0, Math.PI*2);
-  chCtx.stroke();
+  if(r > 0) {
+    chCtx.beginPath();
+    chCtx.arc(x, y, r, 0, Math.PI*2);
+    chCtx.stroke();
+  }
 
   // Inner reticle
   const gap = 8;
@@ -865,14 +881,14 @@ function drawCrosshair() {
     chCtx.lineWidth = 3;
     const pct = 1 - reloadTimers[selectedWeapon] / WEAPONS[selectedWeapon].reloadFrames;
     chCtx.beginPath();
-    chCtx.arc(x, y, r+8, -Math.PI/2, -Math.PI/2 + pct*Math.PI*2);
+    chCtx.arc(x, y, Math.max(1, r+8), -Math.PI/2, -Math.PI/2 + pct*Math.PI*2);
     chCtx.stroke();
   } else if(cycling) {
     chCtx.strokeStyle = '#ffcc00';
     chCtx.lineWidth = 1.5;
     const pct = 1 - weaponCooldowns[selectedWeapon]/WEAPONS[selectedWeapon].cooldown;
     chCtx.beginPath();
-    chCtx.arc(x, y, r+6, -Math.PI/2, -Math.PI/2 + pct*Math.PI*2);
+    chCtx.arc(x, y, Math.max(1, r+6), -Math.PI/2, -Math.PI/2 + pct*Math.PI*2);
     chCtx.stroke();
   }
 
@@ -927,7 +943,7 @@ function updateCooldowns() {
   });
 
   // 25mm auto-fire: if mouse held, weapon 0 selected, and not reloading/cycling
-  if(mouseHeld && selectedWeapon===0 && gameState==='playing') {
+  if(mouseHeld && !hudHovered && selectedWeapon===0 && gameState==='playing') {
     if(!isReloading[0] && weaponCooldowns[0]===0 && weaponAmmo[0]>0) {
       fireWeapon(mouseX, mouseY);
     }
