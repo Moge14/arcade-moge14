@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ARCADE — Game Launcher</title>
+<title>MathsZone — Interactive Learning</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap');
 
 :root {
   --green: #00ff88;
@@ -15,730 +15,578 @@
   --bg: #07070d;
   --panel: #0d0d1a;
   --border: rgba(0,255,136,0.15);
+  --m-bg: #f5f7fa;
+  --m-panel: #ffffff;
+  --m-blue: #1a56db;
+  --m-blue-light: #e8f0fe;
+  --m-text: #1e293b;
+  --m-muted: #64748b;
+  --m-border: #e2e8f0;
+  --m-green: #16a34a;
+  --m-red: #dc2626;
 }
 
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
 
-body {
-  background: var(--bg);
-  color: var(--green);
-  font-family: 'Share Tech Mono', monospace;
-  min-height: 100vh;
-  overflow-x: hidden;
-  cursor: crosshair;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 3px,
-    rgba(0,255,136,0.012) 3px, rgba(0,255,136,0.012) 4px
-  );
-  pointer-events: none;
-  z-index: 100;
+/* ─── MATHS LOGIN SCREEN ─── */
+#mathsScreen {
+  position:fixed; inset:0; z-index:200;
+  background:var(--m-bg);
+  font-family:'Inter',sans-serif;
+  color:var(--m-text);
+  display:flex; flex-direction:column; min-height:100vh;
+  overflow-y:auto;
 }
 
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.75) 100%);
-  pointer-events: none;
-  z-index: 99;
+.m-nav {
+  background:var(--m-panel);
+  border-bottom:1px solid var(--m-border);
+  padding:0 2rem; height:60px;
+  display:flex; align-items:center; justify-content:space-between;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+  flex-shrink:0;
+}
+.m-logo {
+  display:flex; align-items:center; gap:10px;
+  font-weight:600; font-size:1.1rem;
+  color:var(--m-blue); text-decoration:none;
+}
+.m-logo-icon {
+  width:34px; height:34px; background:var(--m-blue);
+  border-radius:8px; display:flex; align-items:center; justify-content:center;
+  color:white; font-size:1rem; font-weight:700;
+  font-family:'Source Serif 4',serif;
+}
+.m-nav-links { display:flex; gap:1.8rem; font-size:0.88rem; color:var(--m-muted); list-style:none; }
+.m-nav-links li { cursor:pointer; transition:color 0.15s; }
+.m-nav-links li:hover { color:var(--m-blue); }
+.m-nav-right { display:flex; gap:0.75rem; align-items:center; }
+.m-btn-outline {
+  padding:6px 16px; border:1px solid var(--m-blue); color:var(--m-blue);
+  background:transparent; border-radius:6px; font-size:0.82rem; font-weight:500;
+  cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.15s;
+}
+.m-btn-outline:hover { background:var(--m-blue-light); }
+
+.m-body {
+  flex:1; display:flex; align-items:flex-start; justify-content:center;
+  padding:3rem 1.5rem 2rem; gap:3rem; flex-wrap:wrap;
+  position:relative;
 }
 
-/* ── PASSWORD SCREEN ── */
-#passwordScreen {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  gap: 1.2rem;
+/* Floating maths symbols */
+.m-symbol {
+  position:absolute; font-family:'Source Serif 4',serif; font-style:italic;
+  font-size:5rem; color:rgba(26,86,219,0.045);
+  pointer-events:none; user-select:none; z-index:0;
 }
 
-.pw-box {
-  position: relative;
-  border: 1px solid rgba(0,255,136,0.25);
-  padding: 2.5rem 2.5rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.2rem;
-  background: rgba(0,255,136,0.02);
-  box-shadow: 0 0 40px rgba(0,255,136,0.08);
-  min-width: 300px;
-  max-width: 360px;
-  width: 90vw;
+.m-hero { max-width:420px; padding-top:1.5rem; position:relative; z-index:1; }
+.m-badge {
+  display:inline-block; background:var(--m-blue-light); color:var(--m-blue);
+  font-size:0.72rem; font-weight:600; letter-spacing:0.04em;
+  padding:4px 12px; border-radius:20px; margin-bottom:1.2rem;
+}
+.m-hero h1 {
+  font-family:'Source Serif 4',serif; font-size:2.4rem; font-weight:600;
+  line-height:1.25; color:var(--m-text); margin-bottom:1rem;
+}
+.m-hero p { font-size:0.95rem; color:var(--m-muted); line-height:1.7; margin-bottom:1.8rem; }
+.m-features { display:flex; flex-direction:column; gap:0.75rem; list-style:none; }
+.m-features li {
+  display:flex; align-items:center; gap:0.6rem;
+  font-size:0.88rem; color:var(--m-muted);
+}
+.m-features li::before {
+  content:'✓'; width:20px; height:20px; background:#dcfce7;
+  color:var(--m-green); border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:0.7rem; font-weight:700; flex-shrink:0;
+}
+.m-stats {
+  display:flex; gap:2rem; margin-top:2.5rem;
+  padding-top:2rem; border-top:1px solid var(--m-border);
+}
+.m-stat-val {
+  font-family:'Source Serif 4',serif; font-size:1.6rem; font-weight:600;
+  color:var(--m-blue); display:block;
+}
+.m-stat-label { font-size:0.75rem; color:var(--m-muted); margin-top:2px; }
+
+.m-login-card {
+  background:var(--m-panel); border:1px solid var(--m-border);
+  border-radius:12px; padding:2.2rem 2rem;
+  width:100%; max-width:380px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.08);
+  flex-shrink:0; position:relative; z-index:1;
+}
+.m-login-card h2 {
+  font-family:'Source Serif 4',serif; font-size:1.4rem; font-weight:600;
+  color:var(--m-text); margin-bottom:0.35rem;
+}
+.m-card-sub { font-size:0.83rem; color:var(--m-muted); margin-bottom:1.8rem; }
+.m-field { margin-bottom:1.1rem; }
+.m-label { display:block; font-size:0.8rem; font-weight:500; color:var(--m-text); margin-bottom:0.4rem; }
+.m-input {
+  width:100%; padding:0.6rem 0.85rem;
+  border:1px solid var(--m-border); border-radius:7px;
+  font-size:0.9rem; font-family:'Inter',sans-serif;
+  color:var(--m-text); background:white; outline:none;
+  transition:border-color 0.15s, box-shadow 0.15s;
+}
+.m-input:focus { border-color:var(--m-blue); box-shadow:0 0 0 3px rgba(26,86,219,0.12); }
+.m-input.m-err { border-color:var(--m-red); box-shadow:0 0 0 3px rgba(220,38,38,0.1); }
+.m-input.m-shake { animation:mShake 0.38s ease; }
+@keyframes mShake {
+  0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)}
+  40%{transform:translateX(7px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)}
+}
+.m-error-msg { font-size:0.75rem; color:var(--m-red); margin-top:0.35rem; min-height:1rem; }
+.m-forgot {
+  display:block; font-size:0.75rem; color:var(--m-blue);
+  text-align:right; margin-top:-0.5rem; margin-bottom:1.2rem; cursor:pointer;
+}
+.m-forgot:hover { text-decoration:underline; }
+.m-submit {
+  width:100%; padding:0.72rem; background:var(--m-blue);
+  border:none; border-radius:7px; color:white;
+  font-family:'Inter',sans-serif; font-size:0.9rem; font-weight:600;
+  cursor:pointer; transition:background 0.15s, box-shadow 0.15s; margin-top:0.3rem;
+}
+.m-submit:hover { background:#1648c0; box-shadow:0 4px 12px rgba(26,86,219,0.25); }
+.m-submit:disabled { background:#93c5fd; cursor:not-allowed; }
+.m-divider {
+  display:flex; align-items:center; gap:0.75rem;
+  margin:1.3rem 0; font-size:0.75rem; color:var(--m-muted);
+}
+.m-divider::before,.m-divider::after { content:''; flex:1; height:1px; background:var(--m-border); }
+.m-signup { text-align:center; font-size:0.8rem; color:var(--m-muted); margin-top:1.2rem; }
+.m-signup a { color:var(--m-blue); text-decoration:none; cursor:pointer; }
+.m-signup a:hover { text-decoration:underline; }
+.m-lock-notice { font-size:0.75rem; text-align:center; color:var(--m-red); margin-top:0.5rem; min-height:1rem; }
+
+.m-footer {
+  background:var(--m-panel); border-top:1px solid var(--m-border);
+  padding:1.2rem 2rem; display:flex;
+  justify-content:space-between; align-items:center;
+  font-size:0.75rem; color:var(--m-muted); flex-shrink:0;
+  flex-wrap:wrap; gap:0.5rem;
+}
+.m-footer-links { display:flex; gap:1.5rem; flex-wrap:wrap; }
+.m-footer-links a { color:var(--m-muted); text-decoration:none; }
+.m-footer-links a:hover { color:var(--m-blue); }
+
+/* ─── ARCADE LAUNCHER ─── */
+#launcher { display:none; }
+
+body.arcade-mode {
+  background:var(--bg); color:var(--green);
+  font-family:'Share Tech Mono',monospace; cursor:crosshair;
+}
+body.arcade-mode::before {
+  content:''; position:fixed; inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,255,136,0.012) 3px,rgba(0,255,136,0.012) 4px);
+  pointer-events:none; z-index:100;
+}
+body.arcade-mode::after {
+  content:''; position:fixed; inset:0;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,0.75) 100%);
+  pointer-events:none; z-index:99;
 }
 
-.pw-corner {
-  position: absolute;
-  width: 14px; height: 14px;
-  border-color: rgba(0,255,136,0.5);
-  border-style: solid;
-}
-.pw-corner.tl { top: 8px;    left: 8px;  border-width: 2px 0 0 2px; }
-.pw-corner.tr { top: 8px;    right: 8px; border-width: 2px 2px 0 0; }
-.pw-corner.bl { bottom: 8px; left: 8px;  border-width: 0 0 2px 2px; }
-.pw-corner.br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
-
-.pw-title {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 900;
-  font-size: 1.6rem;
-  letter-spacing: 0.25em;
-  color: var(--green);
-  text-shadow: 0 0 20px var(--green), 0 0 50px rgba(0,255,136,0.3);
-}
-
-.pw-subtitle {
-  font-size: 0.62rem;
-  letter-spacing: 0.3em;
-  color: rgba(0,255,136,0.35);
-  text-align: center;
-}
-
-#pwInput {
-  width: 100%;
-  background: rgba(0,255,136,0.04);
-  border: 1px solid rgba(0,255,136,0.3);
-  color: var(--green);
-  font-family: 'Orbitron', monospace;
-  font-size: 1.1rem;
-  letter-spacing: 0.3em;
-  padding: 0.7rem 1rem;
-  text-align: center;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-#pwInput:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 16px rgba(0,255,136,0.2);
-}
-#pwInput.shake {
-  animation: shake 0.4s ease;
-  border-color: var(--red);
-  box-shadow: 0 0 16px rgba(255,68,102,0.3);
-}
-#pwInput.success {
-  border-color: var(--green);
-  box-shadow: 0 0 24px rgba(0,255,136,0.5);
-}
-
-@keyframes shake {
-  0%,100% { transform: translateX(0); }
-  20%     { transform: translateX(-8px); }
-  40%     { transform: translateX(8px); }
-  60%     { transform: translateX(-5px); }
-  80%     { transform: translateX(5px); }
-}
-
-.pw-error {
-  font-size: 0.62rem;
-  letter-spacing: 0.2em;
-  color: var(--red);
-  text-shadow: 0 0 8px var(--red);
-  min-height: 0.9rem;
-  text-align: center;
-}
-
-#pwBtn {
-  width: 100%;
-  padding: 0.65rem;
-  background: transparent;
-  border: 1px solid var(--green);
-  color: var(--green);
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.3em;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 0 10px rgba(0,255,136,0.15);
-}
-#pwBtn:hover {
-  background: rgba(0,255,136,0.1);
-  box-shadow: 0 0 22px rgba(0,255,136,0.35);
-}
-
-.pw-attempts {
-  font-size: 0.58rem;
-  letter-spacing: 0.2em;
-  color: rgba(0,255,136,0.2);
-  min-height: 1rem;
-  text-align: center;
-}
-
-/* ── LAUNCHER ── */
-#launcher { display: none; }
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.fade-in { animation: fadeIn 0.6s ease both; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.fade-in { animation:fadeIn 0.6s ease both; }
 
 header {
-  position: relative;
-  text-align: center;
-  padding: 3.5rem 1rem 2rem;
-  border-bottom: 1px solid var(--border);
-  overflow: hidden;
+  position:relative; text-align:center;
+  padding:3.5rem 1rem 2rem;
+  border-bottom:1px solid var(--border); overflow:hidden;
 }
-
 .header-bg {
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse 60% 120% at 50% 0%, rgba(0,255,136,0.07) 0%, transparent 70%);
-  pointer-events: none;
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse 60% 120% at 50% 0%,rgba(0,255,136,0.07) 0%,transparent 70%);
+  pointer-events:none;
 }
-
 .insert-coin {
-  font-size: 0.7rem;
-  letter-spacing: 0.4em;
-  color: rgba(0,255,136,0.4);
-  animation: blink 1.2s step-end infinite;
-  margin-bottom: 0.8rem;
+  font-size:0.7rem; letter-spacing:0.4em; color:rgba(0,255,136,0.4);
+  animation:blink 1.2s step-end infinite; margin-bottom:0.8rem;
 }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
 h1 {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 900;
-  font-size: clamp(3rem, 10vw, 6rem);
-  letter-spacing: 0.18em;
-  line-height: 1;
-  color: var(--green);
-  text-shadow: 0 0 20px var(--green), 0 0 60px rgba(0,255,136,0.5), 0 0 120px rgba(0,255,136,0.2);
-  position: relative;
+  font-family:'Orbitron',sans-serif; font-weight:900;
+  font-size:clamp(3rem,10vw,6rem); letter-spacing:0.18em; line-height:1;
+  color:var(--green);
+  text-shadow:0 0 20px var(--green),0 0 60px rgba(0,255,136,0.5),0 0 120px rgba(0,255,136,0.2);
+  position:relative;
 }
 h1::before {
-  content: 'ARCADE';
-  position: absolute; inset: 0;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(0,255,136,0.2);
-  transform: translate(3px, 3px);
-  z-index: -1;
+  content:'ARCADE'; position:absolute; inset:0;
+  color:transparent; -webkit-text-stroke:1px rgba(0,255,136,0.2);
+  transform:translate(3px,3px); z-index:-1;
 }
-
-.subtitle {
-  font-size: 0.75rem;
-  letter-spacing: 0.5em;
-  color: rgba(0,255,136,0.45);
-  margin-top: 0.6rem;
-}
-
-.corner { position: absolute; width: 20px; height: 20px; border-color: rgba(0,255,136,0.4); border-style: solid; }
-.corner-tl { top: 16px;    left: 16px;  border-width: 2px 0 0 2px; }
-.corner-tr { top: 16px;    right: 16px; border-width: 2px 2px 0 0; }
-.corner-bl { bottom: 16px; left: 16px;  border-width: 0 0 2px 2px; }
-.corner-br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; }
-
+.subtitle { font-size:0.75rem; letter-spacing:0.5em; color:rgba(0,255,136,0.45); margin-top:0.6rem; }
+.corner { position:absolute; width:20px; height:20px; border-color:rgba(0,255,136,0.4); border-style:solid; }
+.corner-tl{top:16px;left:16px;border-width:2px 0 0 2px}
+.corner-tr{top:16px;right:16px;border-width:2px 2px 0 0}
+.corner-bl{bottom:16px;left:16px;border-width:0 0 2px 2px}
+.corner-br{bottom:16px;right:16px;border-width:0 2px 2px 0}
 .stats-bar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2.5rem;
-  padding: 0.7rem 1rem;
-  font-size: 0.68rem;
-  letter-spacing: 0.2em;
-  color: rgba(0,255,136,0.35);
-  border-bottom: 1px solid var(--border);
-  background: rgba(0,255,136,0.02);
+  display:flex; justify-content:center; align-items:center;
+  gap:2.5rem; padding:0.7rem 1rem;
+  font-size:0.68rem; letter-spacing:0.2em; color:rgba(0,255,136,0.35);
+  border-bottom:1px solid var(--border); background:rgba(0,255,136,0.02);
 }
-.stats-bar .val { color: rgba(0,255,136,0.7); }
-
+.stats-bar .val { color:rgba(0,255,136,0.7); }
 .logout-btn {
-  background: transparent;
-  border: 1px solid rgba(0,255,136,0.2);
-  color: rgba(0,255,136,0.35);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  padding: 3px 10px;
-  cursor: pointer;
-  transition: all 0.2s;
+  background:transparent; border:1px solid rgba(0,255,136,0.2);
+  color:rgba(0,255,136,0.35); font-family:'Share Tech Mono',monospace;
+  font-size:0.6rem; letter-spacing:0.15em; padding:3px 10px; cursor:pointer; transition:all 0.2s;
 }
-.logout-btn:hover { border-color: var(--red); color: var(--red); }
-
-main { max-width: 1100px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
-
+.logout-btn:hover { border-color:var(--red); color:var(--red); }
+main { max-width:1100px; margin:0 auto; padding:3rem 1.5rem 5rem; }
 .section-label {
-  font-size: 0.65rem;
-  letter-spacing: 0.5em;
-  color: rgba(0,255,136,0.35);
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  font-size:0.65rem; letter-spacing:0.5em; color:rgba(0,255,136,0.35);
+  margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem;
 }
-.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-.games-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.2rem;
-}
-
+.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.games-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1.2rem; }
 .game-card {
-  position: relative;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  overflow: hidden;
-  text-decoration: none;
-  display: block;
-  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-  animation: cardIn 0.4s ease both;
+  position:relative; background:var(--panel); border:1px solid var(--border);
+  overflow:hidden; text-decoration:none; display:block;
+  transition:transform 0.18s ease,border-color 0.18s ease,box-shadow 0.18s ease;
+  animation:cardIn 0.4s ease both;
 }
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.game-card:nth-child(1){animation-delay:0.05s}
-.game-card:nth-child(2){animation-delay:0.10s}
-.game-card:nth-child(3){animation-delay:0.15s}
-.game-card:nth-child(4){animation-delay:0.20s}
-.game-card:nth-child(5){animation-delay:0.25s}
-.game-card:nth-child(6){animation-delay:0.30s}
-
+@keyframes cardIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.game-card:nth-child(1){animation-delay:0.05s}.game-card:nth-child(2){animation-delay:0.10s}
+.game-card:nth-child(3){animation-delay:0.15s}.game-card:nth-child(4){animation-delay:0.20s}
+.game-card:nth-child(5){animation-delay:0.25s}.game-card:nth-child(6){animation-delay:0.30s}
 .game-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  border-color: var(--accent, var(--green));
-  box-shadow: 0 0 24px rgba(0,255,136,0.18), 0 8px 32px rgba(0,0,0,0.5);
-  z-index: 2;
+  transform:translateY(-4px) scale(1.02);
+  border-color:var(--accent,var(--green));
+  box-shadow:0 0 24px rgba(0,255,136,0.18),0 8px 32px rgba(0,0,0,0.5); z-index:2;
 }
 .game-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 100%; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent, var(--green)), transparent);
-  transition: left 0.3s ease;
+  content:''; position:absolute; top:0; left:-100%; width:100%; height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent,var(--green)),transparent);
+  transition:left 0.3s ease;
 }
-.game-card:hover::before { left: 100%; }
-
+.game-card:hover::before { left:100%; }
 .card-preview {
-  width: 100%;
-  aspect-ratio: 4/3;
-  background: #050508;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
+  width:100%; aspect-ratio:4/3; background:#050508;
+  display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden;
 }
 .card-preview::before {
-  content: '';
-  position: absolute; inset: 0;
+  content:''; position:absolute; inset:0;
   background:
-    repeating-linear-gradient(0deg, transparent, transparent 11px, rgba(255,255,255,0.025) 11px, rgba(255,255,255,0.025) 12px),
-    repeating-linear-gradient(90deg, transparent, transparent 11px, rgba(255,255,255,0.025) 11px, rgba(255,255,255,0.025) 12px);
+    repeating-linear-gradient(0deg,transparent,transparent 11px,rgba(255,255,255,0.025) 11px,rgba(255,255,255,0.025) 12px),
+    repeating-linear-gradient(90deg,transparent,transparent 11px,rgba(255,255,255,0.025) 11px,rgba(255,255,255,0.025) 12px);
 }
-
 .card-icon {
-  font-size: 3.2rem;
-  filter: drop-shadow(0 0 12px var(--accent, var(--green)));
-  position: relative; z-index: 1;
-  animation: iconPulse 3s ease-in-out infinite;
+  font-size:3.2rem; filter:drop-shadow(0 0 12px var(--accent,var(--green)));
+  position:relative; z-index:1; animation:iconPulse 3s ease-in-out infinite;
 }
 @keyframes iconPulse {
-  0%,100%{ transform:scale(1);    filter:drop-shadow(0 0 10px var(--accent,var(--green))); }
-  50%    { transform:scale(1.08); filter:drop-shadow(0 0 22px var(--accent,var(--green))); }
+  0%,100%{transform:scale(1);filter:drop-shadow(0 0 10px var(--accent,var(--green)))}
+  50%{transform:scale(1.08);filter:drop-shadow(0 0 22px var(--accent,var(--green)))}
 }
-
 .card-badge {
-  position: absolute; top: 8px; right: 8px;
-  font-size: 0.55rem; letter-spacing: 0.15em;
-  padding: 2px 7px;
-  border: 1px solid var(--accent, var(--green));
-  color: var(--accent, var(--green));
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(4px);
+  position:absolute; top:8px; right:8px; font-size:0.55rem; letter-spacing:0.15em;
+  padding:2px 7px; border:1px solid var(--accent,var(--green));
+  color:var(--accent,var(--green)); background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);
 }
-.card-badge.coming-soon { border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.25); }
-
-.card-body { padding: 0.9rem 1rem 1rem; border-top: 1px solid var(--border); }
-
+.card-badge.coming-soon { border-color:rgba(255,255,255,0.15); color:rgba(255,255,255,0.25); }
+.card-body { padding:0.9rem 1rem 1rem; border-top:1px solid var(--border); }
 .card-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.9rem; font-weight: 700; letter-spacing: 0.12em;
-  color: var(--accent, var(--green));
-  text-shadow: 0 0 8px var(--accent, var(--green));
-  margin-bottom: 0.35rem;
+  font-family:'Orbitron',sans-serif; font-size:0.9rem; font-weight:700; letter-spacing:0.12em;
+  color:var(--accent,var(--green)); text-shadow:0 0 8px var(--accent,var(--green)); margin-bottom:0.35rem;
 }
-
-.card-desc { font-size: 0.65rem; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); line-height: 1.6; }
-
+.card-desc { font-size:0.65rem; letter-spacing:0.08em; color:rgba(255,255,255,0.3); line-height:1.6; }
 .card-meta {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-top: 0.75rem; font-size: 0.6rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.2);
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:0.75rem; font-size:0.6rem; letter-spacing:0.1em; color:rgba(255,255,255,0.2);
 }
-.card-keys { display: flex; gap: 4px; }
-.key { padding: 1px 5px; border: 1px solid rgba(255,255,255,0.12); border-radius: 2px; font-size: 0.55rem; color: rgba(255,255,255,0.25); }
-
-.game-card.locked { opacity: 0.45; pointer-events: none; filter: grayscale(0.6); }
+.card-keys { display:flex; gap:4px; }
+.key { padding:1px 5px; border:1px solid rgba(255,255,255,0.12); border-radius:2px; font-size:0.55rem; color:rgba(255,255,255,0.25); }
+.game-card.locked { opacity:0.45; pointer-events:none; filter:grayscale(0.6); }
 .game-card.locked .card-preview::after {
-  content: 'COMING SOON';
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Orbitron', sans-serif; font-size: 0.6rem; letter-spacing: 0.3em;
-  color: rgba(255,255,255,0.2); background: rgba(0,0,0,0.4);
+  content:'COMING SOON'; position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron',sans-serif; font-size:0.6rem; letter-spacing:0.3em;
+  color:rgba(255,255,255,0.2); background:rgba(0,0,0,0.4);
 }
-
 .card-play {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0); opacity: 0;
-  transition: opacity 0.2s, background 0.2s;
-  font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 0.3em;
-  color: var(--accent, var(--green)); text-shadow: 0 0 12px var(--accent, var(--green));
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0); opacity:0; transition:opacity 0.2s,background 0.2s;
+  font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:0.3em;
+  color:var(--accent,var(--green)); text-shadow:0 0 12px var(--accent,var(--green));
 }
-.game-card:hover .card-play { opacity: 1; background: rgba(0,0,0,0.45); }
-
-/* ── BLOG / DEVLOG ── */
-.devlog-section {
-  margin-top: 4rem;
-}
-
-.devlog-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
+.game-card:hover .card-play { opacity:1; background:rgba(0,0,0,0.45); }
+.devlog-section { margin-top:4rem; }
+.devlog-grid { display:flex; flex-direction:column; gap:0.85rem; }
 .devlog-post {
-  position: relative;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  padding: 1.1rem 1.4rem 1.1rem 1.3rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0 1.4rem;
-  align-items: start;
-  animation: cardIn 0.4s ease both;
-  overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  position:relative; background:var(--panel); border:1px solid var(--border);
+  padding:1.1rem 1.4rem 1.1rem 1.3rem;
+  display:grid; grid-template-columns:auto 1fr; gap:0 1.4rem; align-items:start;
+  animation:cardIn 0.4s ease both; overflow:hidden; transition:border-color 0.2s,box-shadow 0.2s;
 }
-
 .devlog-post::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: var(--post-accent, var(--green));
-  box-shadow: 0 0 12px var(--post-accent, var(--green));
-  opacity: 0.7;
+  content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+  background:var(--post-accent,var(--green)); box-shadow:0 0 12px var(--post-accent,var(--green)); opacity:0.7;
 }
-
-.devlog-post:hover {
-  border-color: rgba(0,255,136,0.25);
-  box-shadow: 0 0 18px rgba(0,255,136,0.06);
-}
-
-.devlog-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.3rem;
-  min-width: 80px;
-  padding-top: 0.1rem;
-}
-
-.devlog-date {
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  color: rgba(0,255,136,0.3);
-  white-space: nowrap;
-}
-
-.devlog-tag {
-  font-size: 0.52rem;
-  letter-spacing: 0.18em;
-  padding: 2px 6px;
-  border: 1px solid var(--post-accent, var(--green));
-  color: var(--post-accent, var(--green));
-  opacity: 0.75;
-  white-space: nowrap;
-}
-
-.devlog-content {}
-
-.devlog-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: rgba(0,255,136,0.9);
-  margin-bottom: 0.45rem;
-  line-height: 1.4;
-}
-
-.devlog-body {
-  font-size: 0.67rem;
-  letter-spacing: 0.06em;
-  color: rgba(255,255,255,0.38);
-  line-height: 1.75;
-}
-
-.devlog-empty {
-  font-size: 0.65rem;
-  letter-spacing: 0.3em;
-  color: rgba(0,255,136,0.2);
-  text-align: center;
-  padding: 2rem 0;
-}
-
+.devlog-post:hover { border-color:rgba(0,255,136,0.25); box-shadow:0 0 18px rgba(0,255,136,0.06); }
+.devlog-meta { display:flex; flex-direction:column; align-items:flex-end; gap:0.3rem; min-width:80px; padding-top:0.1rem; }
+.devlog-date { font-size:0.6rem; letter-spacing:0.15em; color:rgba(0,255,136,0.3); white-space:nowrap; }
+.devlog-tag { font-size:0.52rem; letter-spacing:0.18em; padding:2px 6px; border:1px solid var(--post-accent,var(--green)); color:var(--post-accent,var(--green)); opacity:0.75; white-space:nowrap; }
+.devlog-title { font-family:'Orbitron',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; color:rgba(0,255,136,0.9); margin-bottom:0.45rem; line-height:1.4; }
+.devlog-body { font-size:0.67rem; letter-spacing:0.06em; color:rgba(255,255,255,0.38); line-height:1.75; }
+.devlog-empty { font-size:0.65rem; letter-spacing:0.3em; color:rgba(0,255,136,0.2); text-align:center; padding:2rem 0; }
 footer {
-  text-align: center; padding: 1.5rem;
-  font-size: 0.6rem; letter-spacing: 0.3em;
-  color: rgba(0,255,136,0.18); border-top: 1px solid var(--border);
+  text-align:center; padding:1.5rem; font-size:0.6rem; letter-spacing:0.3em;
+  color:rgba(0,255,136,0.18); border-top:1px solid var(--border);
 }
-
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.2); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,255,136,0.4); }
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:rgba(0,255,136,0.2); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(0,255,136,0.4); }
 </style>
 </head>
 <body>
 
-<!-- ── PASSWORD SCREEN ── -->
-<div id="passwordScreen">
-  <div class="pw-box">
-    <div class="pw-corner tl"></div>
-    <div class="pw-corner tr"></div>
-    <div class="pw-corner bl"></div>
-    <div class="pw-corner br"></div>
-    <div class="pw-title">ARCADE</div>
-    <div class="pw-subtitle">ENTER ACCESS CODE TO CONTINUE</div>
-    <input id="pwInput" type="password" maxlength="20" placeholder="••••••••" autocomplete="off" spellcheck="false" />
-    <div class="pw-error" id="pwError"></div>
-    <button id="pwBtn">AUTHENTICATE</button>
-    <div class="pw-attempts" id="pwAttempts"></div>
+<!-- ─── MATHS DISGUISE LOGIN ─── -->
+<div id="mathsScreen">
+  <span class="m-symbol" style="top:15%;left:3%">∑</span>
+  <span class="m-symbol" style="top:35%;left:1%">π</span>
+  <span class="m-symbol" style="top:62%;left:5%">∫</span>
+  <span class="m-symbol" style="top:78%;left:2%">√</span>
+  <span class="m-symbol" style="top:10%;right:4%">∞</span>
+  <span class="m-symbol" style="top:42%;right:2%">Δ</span>
+  <span class="m-symbol" style="top:68%;right:5%">θ</span>
+  <span class="m-symbol" style="top:85%;right:3%">∂</span>
+  <span class="m-symbol" style="top:25%;right:18%">λ</span>
+  <span class="m-symbol" style="top:55%;left:18%">μ</span>
+
+  <nav class="m-nav">
+    <a class="m-logo" href="#">
+      <div class="m-logo-icon">M</div>
+      MathsZone
+    </a>
+    <ul class="m-nav-links">
+      <li>Courses</li><li>Practice</li><li>Competitions</li><li>Resources</li>
+    </ul>
+    <div class="m-nav-right">
+      <button class="m-btn-outline">Sign up free</button>
+    </div>
+  </nav>
+
+  <div class="m-body">
+    <div class="m-hero">
+      <div class="m-badge">🎓 Trusted by 50,000+ students</div>
+      <h1>Master Maths at your own pace</h1>
+      <p>From GCSE to A-Level and beyond — interactive lessons, instant feedback, and a curriculum built around how you actually learn.</p>
+      <ul class="m-features">
+        <li>Adaptive practice problems for every level</li>
+        <li>Step-by-step worked solutions</li>
+        <li>Progress tracking and performance insights</li>
+        <li>Covers Pure, Statistics &amp; Mechanics</li>
+      </ul>
+      <div class="m-stats">
+        <div><span class="m-stat-val">50k+</span><div class="m-stat-label">Active students</div></div>
+        <div><span class="m-stat-val">2,400</span><div class="m-stat-label">Practice questions</div></div>
+        <div><span class="m-stat-val">98%</span><div class="m-stat-label">Satisfaction rate</div></div>
+      </div>
+    </div>
+
+    <div class="m-login-card">
+      <h2>Welcome back</h2>
+      <p class="m-card-sub">Sign in to continue your learning journey</p>
+
+      <div class="m-field">
+        <label class="m-label" for="mEmail">Email address</label>
+        <input class="m-input" type="email" id="mEmail" placeholder="you@example.com" autocomplete="off" />
+      </div>
+
+      <div class="m-field">
+        <label class="m-label" for="mPassword">Password</label>
+        <input class="m-input" type="password" id="mPassword" placeholder="••••••••" autocomplete="off" />
+        <div class="m-error-msg" id="mError"></div>
+      </div>
+
+      <span class="m-forgot">Forgot your password?</span>
+
+      <button class="m-submit" id="mSubmit">Sign in</button>
+      <div class="m-lock-notice" id="mLock"></div>
+
+      <div class="m-divider">or</div>
+      <div class="m-signup">Don't have an account? <a>Create one free</a></div>
+    </div>
+  </div>
+
+  <div class="m-footer">
+    <span>© 2026 MathsZone Ltd. All rights reserved.</span>
+    <div class="m-footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact</a>
+      <a href="#">Accessibility</a>
+    </div>
   </div>
 </div>
 
-<!-- ── LAUNCHER ── -->
+<!-- ─── ARCADE LAUNCHER ─── -->
 <div id="launcher">
   <header>
     <div class="header-bg"></div>
-    <div class="corner corner-tl"></div>
-    <div class="corner corner-tr"></div>
-    <div class="corner corner-bl"></div>
-    <div class="corner corner-br"></div>
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div><div class="corner corner-br"></div>
     <div class="insert-coin">▶ INSERT COIN TO CONTINUE ◀</div>
     <h1>ARCADE</h1>
     <div class="subtitle">Select Your Game</div>
   </header>
-
   <div class="stats-bar">
     <span>GAMES AVAILABLE <span class="val" id="availCount">—</span></span>
     <span>PLAYER <span class="val">1UP</span></span>
     <span>STATUS <span class="val">ONLINE</span></span>
     <button class="logout-btn" onclick="logout()">LOGOUT</button>
   </div>
-
   <main>
     <div class="section-label">// AVAILABLE NOW</div>
     <div class="games-grid" id="grid"></div>
-
-    <!-- ── DEVLOG / BLOG ── -->
     <div class="devlog-section">
       <div class="section-label">// DEVLOG</div>
       <div class="devlog-grid" id="devlog"></div>
     </div>
   </main>
-
   <footer>ARCADE v1.0 &nbsp;·&nbsp; BUILT WITH HTML &nbsp;·&nbsp; HOSTED ON GITHUB PAGES</footer>
 </div>
 
 <script>
-// ════════════════════════════════════
-//  ⚙️  SET YOUR PASSWORD HERE
-// ════════════════════════════════════
-const PASSWORD = 'arcade2024';
-// ════════════════════════════════════
-
-
-// ════════════════════════════════════════════════════════════════
-//  📰  DEVLOG POSTS
-//  Add a new {} entry to the top of this array to post something.
-//
-//  Fields:
-//    date    — displayed as-is, e.g. "2025-07-09" or "JULY 2025"
-//    tag     — short label like "UPDATE", "NEW GAME", "HOTFIX", etc.
-//    title   — headline for the post
-//    body    — the full text (supports \n for line breaks)
-//    accent  — optional colour for the left bar + tag (CSS colour string)
-//              defaults to green if omitted
-// ════════════════════════════════════════════════════════════════
-const POSTS = [
-  {
-    date:   '2026-03-09',
-    tag:    'NEW GAME',
-    title:  'Pong and Fruit Slicer!',
-    body:   'Pong has launched, and Fruit Slicer has recieved an update! Check them out!',
-    accent: '#88ff44',
-  },
-  {
-    date:   '2026-03-09',
-    tag:    'COMING SOON',
-    title:  'Tetris & Pong are in development',
-    body:   'Two classics are on the way. Tetris is being built from scratch with a ghost-piece and hold mechanic. Pong will support both 1-player (vs CPU) and 2-player on the same keyboard.',
-    accent: '#44aaff',
-  },
-  {
-    date:   '2026-03-09',
-    tag:    'UPDATE',
-    title:  'Fruit Slicer',
-    body:   'Fruit Slicer has recieved an update, which will patch a game-breaking bug where fruit do not render on screen.',
-    accent: '#ff8833',
-  },
-  {
-    date:   '2026-03-09',
-    tag:    'LAUNCH',
-    title:  'Arcade is open!',
-    body:   'Snake, Breakout, Asteroids and Minesweeper are all live. More games dropping regularly — check back soon.',
-    accent: '#00ff88',
-  },
-];
-// ════════════════════════════════════════════════════════════════
-
-
-const STORAGE_KEY  = 'arcade_auth';
+// ══════════════════════════════
+//  PASSWORD — change this
+// ══════════════════════════════
+const PASSWORD     = 'arcade2024';
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS   = 5 * 60 * 1000; // 5 minutes
+const LOCKOUT_MS   = 5 * 60 * 1000; // 5 min
 
-function isAuthed()  { return localStorage.getItem(STORAGE_KEY) === 'true'; }
-function login()     { localStorage.setItem(STORAGE_KEY, 'true'); }
-function logout()    { localStorage.removeItem(STORAGE_KEY); location.reload(); }
+// In-memory only — no localStorage auth, so every page load requires login
+let sessionAuthed = false;
 
 function getAttempts() {
   return JSON.parse(localStorage.getItem('arcade_attempts') || '{"count":0,"lockUntil":0}');
 }
 function saveAttempts(d) { localStorage.setItem('arcade_attempts', JSON.stringify(d)); }
-
 function lockSecsLeft() {
   const d = getAttempts();
   return d.lockUntil > Date.now() ? Math.ceil((d.lockUntil - Date.now()) / 1000) : 0;
 }
+function logout() { sessionAuthed = false; location.reload(); }
 
-// ── Game registry ──
+// ── Login handler ──
+document.getElementById('mSubmit').addEventListener('click', tryLogin);
+document.getElementById('mPassword').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
+document.getElementById('mEmail').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('mPassword').focus(); });
+
+function tryLogin() {
+  if(lockSecsLeft() > 0) return;
+  const val    = document.getElementById('mPassword').value;
+  const errEl  = document.getElementById('mError');
+  const input  = document.getElementById('mPassword');
+  const submit = document.getElementById('mSubmit');
+
+  if(!val) { errEl.textContent = 'Please enter your password.'; return; }
+
+  if(val === PASSWORD) {
+    sessionAuthed = true;
+    saveAttempts({count:0, lockUntil:0});
+    errEl.textContent = '';
+    input.style.borderColor = '#16a34a';
+    submit.textContent = 'Signing in…';
+    submit.disabled = true;
+    setTimeout(showLauncher, 500);
+  } else {
+    const d = getAttempts();
+    d.count++;
+    if(d.count >= MAX_ATTEMPTS) { d.lockUntil = Date.now() + LOCKOUT_MS; d.count = 0; }
+    saveAttempts(d);
+
+    input.value = '';
+    input.classList.remove('m-shake', 'm-err');
+    void input.offsetWidth;
+    input.classList.add('m-shake', 'm-err');
+    setTimeout(() => input.classList.remove('m-shake'), 400);
+
+    if(lockSecsLeft() > 0) {
+      errEl.textContent = '';
+      updateLockUI();
+    } else {
+      const rem = MAX_ATTEMPTS - d.count;
+      errEl.textContent = `Incorrect password. ${rem} attempt${rem !== 1 ? 's' : ''} remaining.`;
+    }
+  }
+}
+
+function updateLockUI() {
+  const secs   = lockSecsLeft();
+  const lockEl = document.getElementById('mLock');
+  const submit = document.getElementById('mSubmit');
+  const input  = document.getElementById('mPassword');
+  if(secs > 0) {
+    input.disabled = submit.disabled = true;
+    lockEl.textContent = `Account locked — try again in ${secs}s`;
+    setTimeout(updateLockUI, 1000);
+  } else {
+    input.disabled = submit.disabled = false;
+    lockEl.textContent = '';
+  }
+}
+
+// ══════════════════════════════
+//  DEVLOG POSTS
+// ══════════════════════════════
+const POSTS = [
+  { date:'2026-03-09', tag:'NEW GAME',    title:'Pong and Fruit Slicer!',             body:'Pong has launched, and Fruit Slicer has received an update! Check them out!',                                                                                                   accent:'#88ff44' },
+  { date:'2026-03-09', tag:'COMING SOON', title:'Tetris & Pong are in development',   body:'Two classics are on the way. Tetris is being built from scratch with a ghost-piece and hold mechanic. Pong will support both 1-player (vs CPU) and 2-player on the same keyboard.', accent:'#44aaff' },
+  { date:'2026-03-09', tag:'UPDATE',      title:'Fruit Slicer',                       body:'Fruit Slicer has received an update, which will patch a game-breaking bug where fruit do not render on screen.',                                                                accent:'#ff8833' },
+  { date:'2026-03-09', tag:'LAUNCH',      title:'Arcade is open!',                   body:'Snake, Breakout, Asteroids and Minesweeper are all live. More games dropping regularly — check back soon.',                                                                     accent:'#00ff88' },
+];
+
+// ══════════════════════════════
+//  GAME REGISTRY
+// ══════════════════════════════
 const GAMES = [
-  {
-    title: 'SNAKE',
-    desc: "Navigate the grid. Eat the fruit. Don't bite yourself.",
-    icon: '🐍', accent: '#00ff88',
-    url: 'snake/index.html', keys: ['WASD','↑↓←→'], badge: 'PLAY', locked: false,
-  },
-  {
-    title: 'BREAKOUT',
-    desc: "Smash every brick. Don't let the ball drop.",
-    icon: '🔴', accent: '#ff4466',
-    url: 'breakout/index.html', keys: ['←→','SPC'], badge: 'PLAY', locked: false,
-  },
-  {
-    title: 'ASTEROIDS',
-    desc: 'Blast the rocks before they blast you.',
-    icon: '🚀', accent: '#cc88ff',
-    url: 'asteroids/index.html', keys: ['WASD','SPC'], badge: 'PLAY', locked: false,
-  },
-  {
-    title: 'MINESWEEPER',
-    desc: 'Every click is a gamble. Find all the mines.',
-    icon: '💣', accent: '#ff8833',
-    url: 'minesweeper/index.html', keys: ['CLICK','R-CLK'], badge: 'PLAY', locked: false,
-  },
-  {
-    title: 'TETRIS',
-    desc: 'Stack the falling blocks. Clear the lines. Hold on.',
-    icon: '🟦', accent: '#44aaff',
-    url: 'tetris/index.html', keys: ['WASD','SPC'], badge: 'PLAY', locked: false,
-  },
-  {
-    title: 'PONG',
-    desc: 'The original. Two paddles. One ball. Pure reflex.',
-    icon: '🏓', accent: '#ffdd00',
-    url: 'pong/index.html', keys: ['WS','↑↓'], badge: 'PLAY', locked: false,
-  },
-  {
-    title: 'FRUIT SLICER',
-    desc: 'Swipe to slice. Dodge the bombs.',
-    icon: '🍉', accent: '#88ff44',
-    url: 'fruitslice/index.html',
-    keys: ['SWIPE'],
-    badge: 'PLAY', locked: false,
-  },
-  {
-    title: 'RACER',
-    desc: 'Random track every race. 3 laps. Beat your best time.',
-    icon: '🏎️', accent: '#44aaff',
-    url: 'racer/index.html',
-    keys: ['WASD', '↑↓←→'],
-    badge: 'PLAY', locked: false,
-  },
-  {
-    title: 'CHESS',
-    desc: 'Outsmart the CPU or a friend. One king must fall.',
-    icon: '♟️',
-    accent: '#ff4466',
-    url: 'chess/index.html',
-    keys: ['CLICK'],
-    badge: 'PLAY', locked: false,
-  },
-  {
-    title: 'CUBE DASH',
-    desc: 'Jump. Dodge. Die. Repeat.',
-    icon: '🟪',
-    accent: '#cc88ff',
-    url: 'geodash/index.html',
-    keys: ['SPACE'],
-    badge: 'PLAY', locked: false,
-  },
-  {
-    title: 'VOIDWATCH',
-    desc: 'Roguelike tower defense. Draft upgrades. Survive the void.',
-    icon: '⬡',
-    accent: '#ff4466',
-    url: 'voidwatch/index.html',
-    keys: ['CLICK'],
-    badge: 'UPDATING', locked: true,
-  },
-   {
-    title: 'HEARTHSTONE',
-    desc: 'Zone land. Grow your city. Survive what comes next.',
-    icon: '🏛',
-    accent: '#c8960c',
-    url: 'hearthstone/index.html',
-    keys: ['CLICK'],
-    badge: 'UPDATING', locked: true,
-  },
-  {
-    title: 'DANGER CLOSE',
-    desc: 'AC-130 gunship sim. Three weapons. Survive the waves.',
-    icon: '✈',
-    accent: '#00ff41',
-    url: 'gunship/index.html',
-    keys: ['CLICK', 'HOLD', '1/2/3'],
-    badge: 'PLAY', locked: false,
-  },
-  ];
+  { title:'SNAKE',        desc:"Navigate the grid. Eat the fruit. Don't bite yourself.",       icon:'🐍', accent:'#00ff88', url:'snake/index.html',       keys:['WASD','↑↓←→'],        badge:'PLAY',     locked:false },
+  { title:'BREAKOUT',     desc:"Smash every brick. Don't let the ball drop.",                  icon:'🔴', accent:'#ff4466', url:'breakout/index.html',    keys:['←→','SPC'],           badge:'PLAY',     locked:false },
+  { title:'ASTEROIDS',    desc:'Blast the rocks before they blast you.',                       icon:'🚀', accent:'#cc88ff', url:'asteroids/index.html',   keys:['WASD','SPC'],         badge:'PLAY',     locked:false },
+  { title:'MINESWEEPER',  desc:'Every click is a gamble. Find all the mines.',                 icon:'💣', accent:'#ff8833', url:'minesweeper/index.html', keys:['CLICK','R-CLK'],      badge:'PLAY',     locked:false },
+  { title:'TETRIS',       desc:'Stack the falling blocks. Clear the lines. Hold on.',          icon:'🟦', accent:'#44aaff', url:'tetris/index.html',      keys:['WASD','SPC'],         badge:'PLAY',     locked:false },
+  { title:'PONG',         desc:'The original. Two paddles. One ball. Pure reflex.',            icon:'🏓', accent:'#ffdd00', url:'pong/index.html',        keys:['WS','↑↓'],            badge:'PLAY',     locked:false },
+  { title:'FRUIT SLICER', desc:'Swipe to slice. Dodge the bombs.',                             icon:'🍉', accent:'#88ff44', url:'fruitslice/index.html',  keys:['SWIPE'],              badge:'PLAY',     locked:false },
+  { title:'RACER',        desc:'Random track every race. 3 laps. Beat your best time.',        icon:'🏎️', accent:'#44aaff', url:'racer/index.html',       keys:['WASD','↑↓←→'],        badge:'PLAY',     locked:false },
+  { title:'CHESS',        desc:'Outsmart the CPU or a friend. One king must fall.',            icon:'♟️', accent:'#ff4466', url:'chess/index.html',       keys:['CLICK'],              badge:'PLAY',     locked:false },
+  { title:'CUBE DASH',    desc:'Jump. Dodge. Die. Repeat.',                                    icon:'🟪', accent:'#cc88ff', url:'geodash/index.html',     keys:['SPACE'],              badge:'PLAY',     locked:false },
+  { title:'VOIDWATCH',    desc:'Roguelike tower defense. Draft upgrades. Survive the void.',   icon:'⬡',  accent:'#ff4466', url:'voidwatch/index.html',   keys:['CLICK'],              badge:'UPDATING', locked:true  },
+  { title:'HEARTHSTONE',  desc:'Zone land. Grow your city. Survive what comes next.',          icon:'🏛', accent:'#c8960c', url:'hearthstone/index.html', keys:['CLICK'],              badge:'UPDATING', locked:true  },
+  { title:'DANGER CLOSE', desc:'AC-130 gunship sim. Three weapons. Survive the waves.',        icon:'✈',  accent:'#00ff41', url:'gunship/index.html',     keys:['CLICK','HOLD','1/2/3'], badge:'PLAY',  locked:false },
+];
+
+function showLauncher() {
+  document.getElementById('mathsScreen').style.display = 'none';
+  document.body.classList.add('arcade-mode');
+  document.title = 'ARCADE — Game Launcher';
+  const el = document.getElementById('launcher');
+  el.style.display = 'block';
+  buildGrid();
+  buildDevlog();
+}
 
 function buildGrid() {
   const grid = document.getElementById('grid');
-  const availCount = document.getElementById('availCount');
   let available = 0;
-
   GAMES.forEach(game => {
-    if (!game.locked) available++;
+    if(!game.locked) available++;
     const card = document.createElement(game.locked ? 'div' : 'a');
-    if (!game.locked) card.href = game.url;
+    if(!game.locked) card.href = game.url;
     card.className = 'game-card' + (game.locked ? ' locked' : '');
     card.style.setProperty('--accent', game.accent);
     card.innerHTML = `
@@ -751,29 +599,23 @@ function buildGrid() {
         <div class="card-title">${game.title}</div>
         <div class="card-desc">${game.desc}</div>
         <div class="card-meta">
-          <div class="card-keys">${game.keys.map(k => `<span class="key">${k}</span>`).join('')}</div>
+          <div class="card-keys">${game.keys.map(k=>`<span class="key">${k}</span>`).join('')}</div>
           <span>${game.locked ? 'LOCKED' : 'READY'}</span>
         </div>
       </div>`;
     grid.appendChild(card);
   });
-
-  availCount.textContent = available;
+  document.getElementById('availCount').textContent = available;
 }
 
 function buildDevlog() {
   const container = document.getElementById('devlog');
-  if (!POSTS.length) {
-    container.innerHTML = '<div class="devlog-empty">NO POSTS YET — CHECK BACK SOON</div>';
-    return;
-  }
+  if(!POSTS.length) { container.innerHTML = '<div class="devlog-empty">NO POSTS YET — CHECK BACK SOON</div>'; return; }
   POSTS.forEach((post, i) => {
     const el = document.createElement('div');
     el.className = 'devlog-post';
     el.style.setProperty('--post-accent', post.accent || 'var(--green)');
     el.style.animationDelay = `${0.05 + i * 0.07}s`;
-    // convert \n in body to <br>
-    const bodyHtml = (post.body || '').replace(/\n/g, '<br>');
     el.innerHTML = `
       <div class="devlog-meta">
         <span class="devlog-date">${post.date || ''}</span>
@@ -781,83 +623,15 @@ function buildDevlog() {
       </div>
       <div class="devlog-content">
         <div class="devlog-title">${post.title || ''}</div>
-        <div class="devlog-body">${bodyHtml}</div>
+        <div class="devlog-body">${(post.body||'').replace(/\n/g,'<br>')}</div>
       </div>`;
     container.appendChild(el);
   });
 }
 
-function showLauncher() {
-  document.getElementById('passwordScreen').style.display = 'none';
-  const el = document.getElementById('launcher');
-  el.style.display = 'block';
-  buildGrid();
-  buildDevlog();
-}
-
-// ── Password UI ──
-const pwInput    = document.getElementById('pwInput');
-const pwBtn      = document.getElementById('pwBtn');
-const pwError    = document.getElementById('pwError');
-const pwAttempts = document.getElementById('pwAttempts');
-
-function updateLockUI() {
-  const secs = lockSecsLeft();
-  if (secs > 0) {
-    pwInput.disabled = pwBtn.disabled = true;
-    pwError.textContent = '';
-    pwAttempts.innerHTML = `<span style="color:var(--red)">LOCKED — try again in ${secs}s</span>`;
-    setTimeout(updateLockUI, 1000);
-  } else {
-    pwInput.disabled = pwBtn.disabled = false;
-  }
-}
-
-function tryPassword() {
-  if (lockSecsLeft() > 0) return;
-  const val = pwInput.value.trim();
-  if (!val) return;
-
-  if (val === PASSWORD) {
-    pwInput.classList.add('success');
-    pwError.textContent = '';
-    pwAttempts.textContent = '';
-    saveAttempts({ count: 0, lockUntil: 0 });
-    login();
-    setTimeout(showLauncher, 500);
-  } else {
-    const d = getAttempts();
-    d.count++;
-    if (d.count >= MAX_ATTEMPTS) { d.lockUntil = Date.now() + LOCKOUT_MS; d.count = 0; }
-    saveAttempts(d);
-
-    pwInput.value = '';
-    pwInput.classList.remove('shake');
-    void pwInput.offsetWidth;
-    pwInput.classList.add('shake');
-    setTimeout(() => pwInput.classList.remove('shake'), 400);
-
-    if (lockSecsLeft() > 0) {
-      pwError.textContent = 'TOO MANY ATTEMPTS';
-      updateLockUI();
-    } else {
-      const rem = MAX_ATTEMPTS - d.count;
-      pwError.textContent = 'INVALID CODE';
-      pwAttempts.textContent = `${rem} attempt${rem !== 1 ? 's' : ''} remaining`;
-    }
-  }
-}
-
-pwBtn.addEventListener('click', tryPassword);
-pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPassword(); });
-
-// ── Boot ──
-if (isAuthed()) {
-  showLauncher();
-} else {
-  updateLockUI();
-  pwInput.focus();
-}
+// ── Boot: always show login ──
+updateLockUI();
+document.getElementById('mEmail').focus();
 </script>
 </body>
 </html>
