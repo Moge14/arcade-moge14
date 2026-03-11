@@ -170,9 +170,18 @@ canvas.height = H;
 
 const GROUND_Y  = Math.round(H * 0.78);
 const TILE      = Math.round(W * 0.065);
-const GRAVITY   = 0.9;
-const JUMP_V    = -13.5;
-const SPEED     = 4.8;
+
+// ── All physics constants are now per-second, not per-frame ──
+const TARGET_FPS  = 60;
+const GRAVITY_S   = 0.9  * TARGET_FPS * TARGET_FPS;  // px/s²
+const JUMP_V_S    = -13.5 * TARGET_FPS;               // px/s
+const SPEED_S     = 4.8  * TARGET_FPS;                // px/s
+const ROT_GROUND  = 0.15 * TARGET_FPS;                // rad/s
+const ROT_AIR     = 0.12 * TARGET_FPS;                // rad/s
+
+// Delta-time tracking
+let lastTime = null;
+const MAX_DT = 1 / 20; // cap at 50 ms so a tab-switch doesn't explode the sim
 
 // ══════════════════════════════════════
 //  LEVEL THEMES
@@ -191,49 +200,41 @@ const THEMES = [
 function generateLevel(seed) {
   const rng = mulberry32(seed);
   const segments = [];
-  let x = W * 1.5; // start offscreen
+  let x = W * 1.5;
 
-  // Safe zone at start
   segments.push({ type:'flat', x, len: Math.round(W * 0.6) });
   x += Math.round(W * 0.6);
 
-  const targetLen = W * 18; // total level length
+  const targetLen = W * 18;
   while (x < targetLen) {
     const r = rng();
     if (r < 0.30) {
-      // Single spike — generous run-up and landing space
       segments.push({ type:'spike', x, count: 1 });
       x += TILE * (5 + Math.floor(rng() * 3));
     } else if (r < 0.48) {
-      // Spike cluster (2 only — never 3 in a row)
       const count = 2;
       segments.push({ type:'spike', x, count });
       x += TILE * (count + 4 + Math.floor(rng() * 3));
     } else if (r < 0.65) {
-      // Platform — low enough to actually land on
       const pw = TILE * (3 + Math.floor(rng() * 2));
       const ph = GROUND_Y - TILE * (2 + Math.floor(rng() * 2));
       segments.push({ type:'platform', x, w: pw, y: ph });
       x += pw + TILE * (4 + Math.floor(rng() * 3));
     } else if (r < 0.78) {
-      // Gap — narrow enough to clear with a normal jump
       segments.push({ type:'gap', x, w: TILE * (2 + Math.floor(rng() * 1)) });
       x += TILE * (4 + Math.floor(rng() * 2));
     } else {
-      // Flat breather
       segments.push({ type:'flat', x, len: TILE * (5 + Math.floor(rng() * 5)) });
       x += TILE * (6 + Math.floor(rng() * 5));
     }
   }
 
-  // Safe end zone
   segments.push({ type:'flat', x, len: Math.round(W * 0.8) });
   const totalLen = x + Math.round(W * 0.8);
 
   return { segments, totalLen, seed };
 }
 
-// Simple seeded RNG
 function mulberry32(a) {
   return function() {
     a |= 0; a = a + 0x6D2B79F5 | 0;
@@ -252,10 +253,13 @@ let bestPct   = 0;
 let currentLevel = 1;
 let theme, level;
 let camX, player, particles, bgStars;
-let jumpHeld  = false;
 let rafId;
 let deathFlash = 0;
 let winFlash   = 0;
+
+// death/win flash now tracked in seconds, not frames
+const DEATH_FLASH_DUR = 20 / TARGET_FPS;
+const WIN_FLASH_DUR   = 30 / TARGET_FPS;
 
 function pickTheme(lv) { return THEMES[(lv - 1) % THEMES.length]; }
 
@@ -273,22 +277,22 @@ function initRun() {
   player = {
     x: W * 0.22,
     y: GROUND_Y - TILE,
-    vy: 0,
+    vy: 0,       // px/s
     rot: 0,
     onGround: false,
     dead: false,
     trail: [],
   };
 
-  // Background stars
   const rng = mulberry32(currentLevel * 17 + 3);
   bgStars = Array.from({ length: 40 }, () => ({
     x: rng() * W, y: rng() * GROUND_Y * 0.9,
-    r: 0.5 + rng() * 1.5, spd: 0.2 + rng() * 0.6,
+    r: 0.5 + rng() * 1.5, spd: (0.2 + rng() * 0.6) * TARGET_FPS, // px/s
     alpha: 0.2 + rng() * 0.5,
   }));
 
   deathFlash = 0; winFlash = 0;
+  lastTime = null;
 }
 
 // ══════════════════════════════════════
@@ -326,7 +330,7 @@ function rectsOverlap(a, b) {
 }
 
 // ══════════════════════════════════════
-//  UPDATE
+//  INPUT
 // ══════════════════════════════════════
 const keys = {};
 window.addEventListener('keydown', e => {
@@ -336,13 +340,10 @@ window.addEventListener('keyup', e => {
   if (e.code === 'Space') keys.space = false;
 });
 
-let justJumped = false;
-
 function tryJump() {
   if (player.onGround && !player.dead) {
-    player.vy = JUMP_V;
+    player.vy = JUMP_V_S;
     player.onGround = false;
-    justJumped = true;
     spawnJumpParticles();
   }
 }
@@ -352,35 +353,40 @@ canvas.addEventListener('touchstart', e => { e.preventDefault(); tryJump(); }, {
 canvas.addEventListener('touchend',   e => e.preventDefault(), { passive: false });
 startBtn.addEventListener('click',    startGame);
 
-function update() {
+// ══════════════════════════════════════
+//  UPDATE  (dt = seconds since last frame)
+// ══════════════════════════════════════
+function update(dt) {
   if (player.dead) {
-    deathFlash = Math.max(0, deathFlash - 1);
-    particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.15; p.life-=p.decay; });
+    deathFlash = Math.max(0, deathFlash - dt);
+    particles.forEach(p => {
+      p.x  += p.vx * dt;
+      p.y  += p.vy * dt;
+      p.vy += 0.15 * TARGET_FPS * dt;
+      p.life -= p.decay * dt;
+    });
     particles = particles.filter(p => p.life > 0);
     return;
   }
-  if (winFlash > 0) { winFlash--; return; }
+  if (winFlash > 0) { winFlash = Math.max(0, winFlash - dt); return; }
 
-  // Jump input — space held gives extra height
-  if ((keys.space) && player.onGround) tryJump();
-  justJumped = false; // hold-jump removed — single consistent arc
+  // Jump input
+  if (keys.space && player.onGround) tryJump();
 
-  // Physics
-  player.vy += GRAVITY;
-  player.y  += player.vy;
+  // Physics — all scaled by dt
+  player.vy += GRAVITY_S * dt;
+  player.y  += player.vy * dt;
 
-  // Camera scrolls rightward
-  camX += SPEED;
+  // Camera
+  camX += SPEED_S * dt;
 
   // Progress
   const pct = Math.min(100, Math.round((camX / (level.totalLen - W)) * 100));
   progressBar.style.width = pct + '%';
   if (pct > bestPct) { bestPct = pct; bestEl.textContent = bestPct + '%'; }
 
-  // Win condition
-  if (camX >= level.totalLen - W - TILE * 2) {
-    winGame(); return;
-  }
+  // Win
+  if (camX >= level.totalLen - W - TILE * 2) { winGame(); return; }
 
   player.onGround = false;
 
@@ -398,7 +404,6 @@ function update() {
     if (!rectsOverlap(pr, sr)) continue;
 
     if (obs.type === 'platform') {
-      // Land on top of platform
       const fromTop = (pr.y + pr.h) - sr.y;
       if (fromTop < 14 && player.vy >= 0) {
         player.y = sr.y - TILE;
@@ -412,30 +417,33 @@ function update() {
     }
   }
 
-  // Rotation
-  player.rot += player.onGround ? 0.15 : 0.12;
+  // Rotation (rad/s * dt)
+  player.rot += (player.onGround ? ROT_GROUND : ROT_AIR) * dt;
 
-  // Trail
+  // Trail — push every frame, still fine
   player.trail.push({ x: player.x, y: player.y, rot: player.rot });
   if (player.trail.length > 8) player.trail.shift();
 
-  // Update stars
-  bgStars.forEach(s => { s.x -= s.spd; if (s.x < 0) s.x = W; });
+  // Stars
+  bgStars.forEach(s => { s.x -= s.spd * dt; if (s.x < 0) s.x = W; });
 
   // Particles
-  particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.06; p.life-=p.decay; });
+  particles.forEach(p => {
+    p.x  += p.vx * dt;
+    p.y  += p.vy * dt;
+    p.vy += 0.06 * TARGET_FPS * dt;
+    p.life -= p.decay * dt;
+  });
   particles = particles.filter(p => p.life > 0);
 }
 
 // ══════════════════════════════════════
-//  DRAW
+//  DRAW  (unchanged)
 // ══════════════════════════════════════
 function draw() {
-  // Background
   ctx.fillStyle = theme.bg;
   ctx.fillRect(0, 0, W, H);
 
-  // Stars / BG particles
   bgStars.forEach(s => {
     ctx.globalAlpha = s.alpha;
     ctx.fillStyle   = theme.accent;
@@ -443,14 +451,12 @@ function draw() {
   });
   ctx.globalAlpha = 1;
 
-  // Ground
   const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, H);
   groundGrad.addColorStop(0, theme.ground);
   groundGrad.addColorStop(1, theme.bg);
   ctx.fillStyle = groundGrad;
   ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
 
-  // Ground top line glow
   ctx.shadowColor = theme.accent;
   ctx.shadowBlur  = 10;
   ctx.strokeStyle = theme.accent;
@@ -458,7 +464,6 @@ function draw() {
   ctx.beginPath(); ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); ctx.stroke();
   ctx.shadowBlur  = 0;
 
-  // Ground grid lines
   ctx.strokeStyle = theme.accent + '22';
   ctx.lineWidth   = 0.5;
   const gOff = camX % TILE;
@@ -466,10 +471,8 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(x, GROUND_Y); ctx.lineTo(x, H); ctx.stroke();
   }
 
-  // Draw obstacles
   drawObstacles();
 
-  // Player trail
   player.trail.forEach((t, i) => {
     const a = (i / player.trail.length) * 0.3;
     ctx.save();
@@ -482,10 +485,8 @@ function draw() {
     ctx.globalAlpha = 1;
   });
 
-  // Player cube
   if (!player.dead) drawCube(player.x, player.y, player.rot);
 
-  // Particles
   particles.forEach(p => {
     ctx.globalAlpha = p.life;
     ctx.fillStyle   = p.color;
@@ -494,14 +495,12 @@ function draw() {
   });
   ctx.globalAlpha = 1; ctx.shadowBlur = 0;
 
-  // Death flash
   if (deathFlash > 0) {
-    ctx.fillStyle = `rgba(255,60,60,${(deathFlash/20)*0.35})`;
+    ctx.fillStyle = `rgba(255,60,60,${(deathFlash / DEATH_FLASH_DUR) * 0.35})`;
     ctx.fillRect(0, 0, W, H);
   }
-  // Win flash
   if (winFlash > 0) {
-    ctx.fillStyle = `rgba(255,255,255,${(winFlash/30)*0.25})`;
+    ctx.fillStyle = `rgba(255,255,255,${(winFlash / WIN_FLASH_DUR) * 0.25})`;
     ctx.fillRect(0, 0, W, H);
   }
 }
@@ -511,29 +510,23 @@ function drawCube(x, y, rot) {
   ctx.translate(x + TILE/2, y + TILE/2);
   ctx.rotate(rot);
 
-  // Shadow
   ctx.shadowColor = theme.glow;
   ctx.shadowBlur  = 18;
-
-  // Body
   ctx.fillStyle = theme.cube;
   ctx.fillRect(-TILE/2, -TILE/2, TILE, TILE);
 
-  // Inner square
   ctx.shadowBlur = 0;
   ctx.strokeStyle = theme.accent;
   ctx.lineWidth   = 1.5;
   const p = TILE * 0.2;
   ctx.strokeRect(-TILE/2 + p, -TILE/2 + p, TILE - p*2, TILE - p*2);
 
-  // Corner dots
   ctx.fillStyle = theme.accent;
   const c = TILE * 0.28;
   [[-c,-c],[c,-c],[-c,c],[c,c]].forEach(([dx,dy]) => {
     ctx.beginPath(); ctx.arc(dx, dy, 1.8, 0, Math.PI*2); ctx.fill();
   });
 
-  // Shine
   ctx.fillStyle = 'rgba(255,255,255,0.18)';
   ctx.beginPath();
   ctx.moveTo(-TILE/2, -TILE/2);
@@ -557,7 +550,6 @@ function drawObstacles() {
     } else if (seg.type === 'platform') {
       drawPlatform(sx, seg.y, seg.w);
     }
-    // gaps are just absence of ground — no drawing needed
   }
 }
 
@@ -573,7 +565,6 @@ function drawSpike(x, baseY) {
   ctx.closePath();
   ctx.fill();
 
-  // Shine edge
   ctx.strokeStyle = 'rgba(255,255,255,0.3)';
   ctx.lineWidth   = 1;
   ctx.beginPath();
@@ -594,7 +585,6 @@ function drawPlatform(x, y, w) {
   ctx.lineWidth   = 1.5;
   ctx.strokeRect(x, y, w, TILE);
 
-  // Grid pattern on platform
   ctx.strokeStyle = theme.accent + '44';
   ctx.lineWidth   = 0.5;
   for (let px = x; px < x + w; px += TILE) {
@@ -612,8 +602,9 @@ function spawnJumpParticles() {
     particles.push({
       x: player.x + TILE/2 + (Math.random()-0.5)*TILE,
       y: player.y + TILE,
-      vx: (Math.random()-0.5)*3, vy: 1 + Math.random()*2,
-      life: 1, decay: 0.07 + Math.random()*0.05,
+      vx: (Math.random()-0.5) * 3 * TARGET_FPS,
+      vy: (1 + Math.random()*2) * TARGET_FPS,
+      life: 1, decay: (0.07 + Math.random()*0.05) * TARGET_FPS,
       r: 2 + Math.random()*2, color: theme.accent,
     });
   }
@@ -622,11 +613,11 @@ function spawnJumpParticles() {
 function spawnDeathParticles() {
   for (let i = 0; i < 22; i++) {
     const a = Math.random() * Math.PI * 2;
-    const s = 2 + Math.random() * 6;
+    const s = (2 + Math.random() * 6) * TARGET_FPS;
     particles.push({
       x: player.x + TILE/2, y: player.y + TILE/2,
-      vx: Math.cos(a)*s, vy: Math.sin(a)*s - 2,
-      life: 1, decay: 0.025 + Math.random()*0.03,
+      vx: Math.cos(a)*s, vy: Math.sin(a)*s - 2 * TARGET_FPS,
+      life: 1, decay: (0.025 + Math.random()*0.03) * TARGET_FPS,
       r: 2 + Math.random()*4, color: i%2===0 ? theme.cube : theme.spike,
     });
   }
@@ -638,7 +629,7 @@ function spawnDeathParticles() {
 function die() {
   if (player.dead) return;
   player.dead = true;
-  deathFlash  = 20;
+  deathFlash  = DEATH_FLASH_DUR;
   spawnDeathParticles();
 
   const pct = Math.min(100, Math.round((camX / (level.totalLen - W)) * 100));
@@ -655,7 +646,7 @@ function die() {
 }
 
 function winGame() {
-  winFlash = 30;
+  winFlash = WIN_FLASH_DUR;
   bestPct  = 100;
   bestEl.textContent = '100%';
   progressBar.style.width = '100%';
@@ -680,7 +671,6 @@ function startGame() {
     attempt = 1;
     bestPct = 0;
   }
-  // else retry same level
 
   bestEl.textContent    = '0%';
   attemptEl.textContent = attempt;
@@ -690,11 +680,16 @@ function startGame() {
 }
 
 // ══════════════════════════════════════
-//  LOOP
+//  LOOP — delta-time driven
 // ══════════════════════════════════════
-function loop() {
+function loop(timestamp) {
   if (state === 'playing' || state === 'dead') {
-    update();
+    // Compute dt in seconds
+    if (lastTime === null) lastTime = timestamp;
+    const dt = Math.min((timestamp - lastTime) / 1000, MAX_DT);
+    lastTime = timestamp;
+
+    update(dt);
     draw();
   }
   rafId = requestAnimationFrame(loop);
@@ -718,7 +713,7 @@ initRun();
   drawCube(W*0.22, GROUND_Y - TILE, 0.3);
 })();
 
-loop();
+loop(0);
 </script>
 </body>
 </html>
