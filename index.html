@@ -1885,7 +1885,7 @@ function buildGrid() {
   GAMES.forEach(game => {
     if(!game.locked) available++;
     const card = document.createElement(game.locked ? 'div' : 'a');
-    if(!game.locked) { card.href = game.url; card.target = '_blank'; card.rel = 'noopener'; }
+    if(!game.locked) { card.href = game.url + '?from=arcade'; card.target = '_blank'; card.rel = 'noopener'; }
     card.className = 'game-card' + (game.locked ? ' locked' : '');
     card.style.setProperty('--accent', game.accent);
     card.innerHTML = `
@@ -1928,8 +1928,13 @@ function buildDevlog() {
   });
 }
 
-// ── Boot: auto show home ──
-showView('home');
+// ── Boot ──
+if(new URLSearchParams(window.location.search).get('from') === 'arcade') {
+  // Opened from a game tab — go straight to arcade launcher (already authed)
+  showLauncher();
+} else {
+  showView('home');
+}
 </script>
 </body>
 </html>
