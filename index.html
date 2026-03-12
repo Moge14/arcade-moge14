@@ -313,49 +313,15 @@ html { scroll-behavior:smooth; }
   cursor:pointer;
 }
 
-/* ─── ARCADE PASSWORD MODAL ─── */
-#arcadeModal {
-  display:none; position:fixed; inset:0; z-index:9999;
-  background:rgba(7,7,13,0.92); backdrop-filter:blur(8px);
-  align-items:center; justify-content:center;
+/* ─── ARCADE LOGIN SCREEN ─── */
+#arcadeLoginScreen {
+  position:fixed; inset:0; z-index:300;
+  background:var(--m-bg);
+  font-family:'Inter',sans-serif;
+  color:var(--m-text);
+  flex-direction:column; min-height:100vh;
+  overflow-y:auto;
 }
-#arcadeModal.open { display:flex; }
-.arcade-modal-inner {
-  background:#0d0d1a; border:1px solid rgba(0,255,136,0.25);
-  border-radius:4px; padding:2.5rem; width:100%; max-width:380px;
-  text-align:center; position:relative;
-  box-shadow:0 0 60px rgba(0,255,136,0.1);
-  animation:arcadeIn 0.3s ease;
-}
-@keyframes arcadeIn { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
-.arcade-modal-inner h3 {
-  font-family:'Orbitron',sans-serif; font-size:1.1rem; letter-spacing:0.2em;
-  color:#00ff88; text-shadow:0 0 12px #00ff88; margin-bottom:0.5rem;
-}
-.arcade-modal-inner p {
-  font-family:'Share Tech Mono',monospace; font-size:0.7rem;
-  letter-spacing:0.2em; color:rgba(0,255,136,0.4); margin-bottom:1.8rem;
-}
-.arcade-pw-input {
-  width:100%; padding:0.75rem; background:#070710; border:1px solid rgba(0,255,136,0.3);
-  color:#00ff88; font-family:'Share Tech Mono',monospace; font-size:1rem;
-  letter-spacing:0.2em; text-align:center; border-radius:3px; outline:none;
-  transition:border-color 0.2s;
-}
-.arcade-pw-input:focus { border-color:#00ff88; box-shadow:0 0 0 3px rgba(0,255,136,0.1); }
-.arcade-pw-err { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:#ff4466; margin-top:0.5rem; min-height:1em; }
-.arcade-enter-btn {
-  margin-top:1rem; width:100%; padding:0.7rem;
-  background:transparent; border:1px solid #00ff88; color:#00ff88;
-  font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:0.2em;
-  cursor:pointer; border-radius:3px; transition:all 0.2s;
-}
-.arcade-enter-btn:hover { background:rgba(0,255,136,0.08); box-shadow:0 0 16px rgba(0,255,136,0.15); }
-.arcade-modal-close {
-  position:absolute; top:12px; right:14px; background:none; border:none;
-  color:rgba(0,255,136,0.3); cursor:pointer; font-size:1rem; transition:color 0.15s;
-}
-.arcade-modal-close:hover { color:#ff4466; }
 
 /* ─── ARCADE (existing styles kept) ─── */
 body.arcade-mode {
@@ -555,15 +521,82 @@ footer.arcade-footer {
 </head>
 <body>
 
-<!-- ─── ARCADE PASSWORD MODAL ─── -->
-<div id="arcadeModal">
-  <div class="arcade-modal-inner">
-    <button class="arcade-modal-close" onclick="closeArcadeModal()">✕</button>
-    <h3>// ARCADE ACCESS //</h3>
-    <p>ENTER ACCESS CODE TO PROCEED</p>
-    <input class="arcade-pw-input" type="password" id="arcadePwInput" placeholder="_ _ _ _ _ _ _ _ _ _" maxlength="20" />
-    <div class="arcade-pw-err" id="arcadePwErr"></div>
-    <button class="arcade-enter-btn" onclick="tryArcadeLogin()">▶ ENTER</button>
+<!-- ─── ARCADE LOGIN SCREEN ─── -->
+<div id="arcadeLoginScreen" style="display:none;">
+
+  <span class="m-symbol" style="top:15%;left:3%">∑</span>
+  <span class="m-symbol" style="top:35%;left:1%">π</span>
+  <span class="m-symbol" style="top:62%;left:5%">∫</span>
+  <span class="m-symbol" style="top:78%;left:2%">√</span>
+  <span class="m-symbol" style="top:10%;right:4%">∞</span>
+  <span class="m-symbol" style="top:42%;right:2%">Δ</span>
+  <span class="m-symbol" style="top:68%;right:5%">θ</span>
+  <span class="m-symbol" style="top:85%;right:3%">∂</span>
+  <span class="m-symbol" style="top:25%;right:18%">λ</span>
+  <span class="m-symbol" style="top:55%;left:18%">μ</span>
+
+  <nav class="m-nav">
+    <a class="m-logo" href="#" onclick="closeArcadeLogin(); return false;">
+      <div class="m-logo-icon">M</div>
+      MathsZone
+    </a>
+    <ul class="m-nav-links">
+      <li>Courses</li><li>Practice</li><li>Competitions</li><li>Resources</li>
+    </ul>
+    <div class="m-nav-right">
+      <button class="m-btn-outline" onclick="closeArcadeLogin()">← Back</button>
+    </div>
+  </nav>
+
+  <div class="m-body">
+    <div class="m-hero">
+      <div class="m-badge">🕹️ Staff &amp; Developer Access</div>
+      <h1>Welcome back,<br>developer.</h1>
+      <p>This area is restricted to authorised users. Enter your access code to continue to the Arcade dashboard.</p>
+      <ul class="m-features">
+        <li>Full game library access</li>
+        <li>Devlog management</li>
+        <li>Live game status</li>
+        <li>11 games available now</li>
+      </ul>
+      <div class="m-stats">
+        <div><span class="m-stat-val">11</span><div class="m-stat-label">Games live</div></div>
+        <div><span class="m-stat-val">2</span><div class="m-stat-label">In development</div></div>
+        <div><span class="m-stat-val">v1.0</span><div class="m-stat-label">Current version</div></div>
+      </div>
+    </div>
+
+    <div class="m-login-card">
+      <h2>Arcade Access</h2>
+      <p class="m-card-sub">Enter your access code to continue</p>
+
+      <div class="m-field">
+        <label class="m-label" for="arcadeEmail">Email address</label>
+        <input class="m-input" type="email" id="arcadeEmail" placeholder="you@example.com" autocomplete="off" />
+      </div>
+
+      <div class="m-field">
+        <label class="m-label" for="arcadePwInput">Access code</label>
+        <input class="m-input" type="password" id="arcadePwInput" placeholder="••••••••••" autocomplete="off"
+          onkeydown="if(event.key==='Enter') tryArcadeLogin()" />
+        <div class="m-error-msg" id="arcadePwErr"></div>
+      </div>
+
+      <button class="m-submit" id="arcadeSubmit" onclick="tryArcadeLogin()">Enter Arcade →</button>
+      <div class="m-lock-notice" id="arcadeLock"></div>
+
+      <div class="m-divider">or</div>
+      <div class="m-signup"><a onclick="closeArcadeLogin()">← Return to MathsZone</a></div>
+    </div>
+  </div>
+
+  <div class="m-footer">
+    <span>© 2026 MathsZone Ltd. All rights reserved.</span>
+    <div class="m-footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact</a>
+    </div>
   </div>
 </div>
 
@@ -632,7 +665,7 @@ footer.arcade-footer {
         <a onclick="void(0)">Courses</a>
         <a onclick="void(0)">Terms of Service</a>
         <a onclick="void(0)">Contact</a>
-        <a class="hidden-arcade-link" onclick="openArcadeModal()" title="Privacy Policy">Privacy Policy</a>
+        <a class="hidden-arcade-link" onclick="openArcadeLogin()" title="Privacy Policy">Privacy Policy</a>
         <a onclick="void(0)">Accessibility</a>
       </div>
     </div>
@@ -836,28 +869,67 @@ const PASSWORD_ARCADE = 'arcade2024';
 // ══════════════════════════════
 //  ARCADE MODAL
 // ══════════════════════════════
-function openArcadeModal() {
-  document.getElementById('arcadeModal').classList.add('open');
-  document.getElementById('arcadePwInput').value='';
-  document.getElementById('arcadePwErr').textContent='';
-  setTimeout(()=>document.getElementById('arcadePwInput').focus(), 100);
+function openArcadeLogin() {
+  const scr = document.getElementById('arcadeLoginScreen');
+  scr.style.display = 'flex';
+  document.getElementById('arcadePwInput').value = '';
+  document.getElementById('arcadePwErr').textContent = '';
+  document.getElementById('arcadeLock').textContent = '';
+  setTimeout(() => document.getElementById('arcadePwInput').focus(), 100);
 }
-function closeArcadeModal() {
-  document.getElementById('arcadeModal').classList.remove('open');
+function closeArcadeLogin() {
+  document.getElementById('arcadeLoginScreen').style.display = 'none';
 }
-document.getElementById('arcadePwInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tryArcadeLogin(); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeArcadeModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeArcadeLogin(); });
+
+let arcadeAttempts = 0;
+let arcadeLockUntil = 0;
 
 function tryArcadeLogin() {
+  if(Date.now() < arcadeLockUntil) return;
   const val = document.getElementById('arcadePwInput').value;
+  const errEl = document.getElementById('arcadePwErr');
+  const lockEl = document.getElementById('arcadeLock');
+  const submit = document.getElementById('arcadeSubmit');
+  const input = document.getElementById('arcadePwInput');
+
+  if(!val) { errEl.textContent = 'Please enter your access code.'; return; }
+
   if(val === PASSWORD_ARCADE) {
-    closeArcadeModal();
-    showLauncher();
+    arcadeAttempts = 0;
+    errEl.textContent = '';
+    input.style.borderColor = '#16a34a';
+    submit.textContent = 'Entering…';
+    submit.disabled = true;
+    setTimeout(() => {
+      closeArcadeLogin();
+      input.style.borderColor = '';
+      submit.textContent = 'Enter Arcade →';
+      submit.disabled = false;
+      showLauncher();
+    }, 500);
   } else {
-    document.getElementById('arcadePwErr').textContent='ACCESS DENIED — INVALID CODE';
-    document.getElementById('arcadePwInput').value='';
-    document.getElementById('arcadePwInput').focus();
-    setTimeout(()=>{ document.getElementById('arcadePwErr').textContent=''; }, 2000);
+    arcadeAttempts++;
+    input.value = '';
+    input.classList.remove('m-shake', 'm-err');
+    void input.offsetWidth;
+    input.classList.add('m-shake', 'm-err');
+    setTimeout(() => input.classList.remove('m-shake'), 400);
+    if(arcadeAttempts >= 5) {
+      arcadeLockUntil = Date.now() + 5 * 60 * 1000;
+      arcadeAttempts = 0;
+      input.disabled = submit.disabled = true;
+      errEl.textContent = '';
+      const tick = () => {
+        const secs = Math.ceil((arcadeLockUntil - Date.now()) / 1000);
+        if(secs > 0) { lockEl.textContent = `Too many attempts — try again in ${secs}s`; setTimeout(tick, 1000); }
+        else { lockEl.textContent = ''; input.disabled = submit.disabled = false; }
+      };
+      tick();
+    } else {
+      const rem = 5 - arcadeAttempts;
+      errEl.textContent = `Incorrect code. ${rem} attempt${rem!==1?'s':''} remaining.`;
+    }
   }
 }
 
