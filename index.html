@@ -847,7 +847,7 @@ footer.arcade-footer {
     <span>GAMES AVAILABLE <span class="val" id="availCount">—</span></span>
     <span>PLAYER <span class="val">1UP</span></span>
     <span>STATUS <span class="val">ONLINE</span></span>
-    <button class="logout-btn" onclick="exitArcade()">← EXIT ARCADE</button>
+    <button class="logout-btn" onclick="exitArcade()">← MATHSZONE</button>
   </div>
   <div class="arcade-main">
     <div class="section-label">// AVAILABLE NOW</div>
@@ -1874,8 +1874,10 @@ function showLauncher() {
 function exitArcade() {
   document.body.classList.remove('arcade-mode');
   document.getElementById('launcher').style.display = 'none';
+  document.getElementById('arcadeLoginScreen').style.display = 'none';
   document.getElementById('mathsScreen').style.display = 'block';
   document.title = 'MathsZone — Interactive Learning';
+  showView('home');
 }
 
 function buildGrid() {
@@ -1883,7 +1885,7 @@ function buildGrid() {
   GAMES.forEach(game => {
     if(!game.locked) available++;
     const card = document.createElement(game.locked ? 'div' : 'a');
-    if(!game.locked) card.href = game.url;
+    if(!game.locked) { card.href = game.url; card.target = '_blank'; card.rel = 'noopener'; }
     card.className = 'game-card' + (game.locked ? ' locked' : '');
     card.style.setProperty('--accent', game.accent);
     card.innerHTML = `
