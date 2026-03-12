@@ -36,18 +36,6 @@
     pointer-events: none; z-index: 9;
   }
 
-  .back-btn {
-    position: fixed; top: 1rem; left: 1rem; z-index: 50;
-    padding: 0.4rem 0.9rem;
-    background: transparent;
-    border: 1px solid rgba(180,80,255,0.3);
-    color: rgba(180,80,255,0.5);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem; letter-spacing: 0.15em;
-    text-decoration: none; transition: all 0.2s;
-  }
-  .back-btn:hover { border-color: #cc88ff; color: #cc88ff; box-shadow: 0 0 12px rgba(180,80,255,0.25); }
-
   h1 {
     font-family: 'Orbitron', sans-serif; font-weight: 900;
     font-size: clamp(1.6rem, 4vw, 2.4rem); letter-spacing: 0.35em;
@@ -126,7 +114,6 @@
 </head>
 <body>
 
-<a class="back-btn" href="../index.html">◀ ARCADE</a>
 <h1>CUBE DASH</h1>
 
 <div class="hud">
@@ -171,21 +158,16 @@ canvas.height = H;
 const GROUND_Y  = Math.round(H * 0.78);
 const TILE      = Math.round(W * 0.065);
 
-// ── All physics constants are now per-second, not per-frame ──
 const TARGET_FPS  = 60;
-const GRAVITY_S   = 0.9  * TARGET_FPS * TARGET_FPS;  // px/s²
-const JUMP_V_S    = -13.5 * TARGET_FPS;               // px/s
-const SPEED_S     = 4.8  * TARGET_FPS;                // px/s
-const ROT_GROUND  = 0.15 * TARGET_FPS;                // rad/s
-const ROT_AIR     = 0.12 * TARGET_FPS;                // rad/s
+const GRAVITY_S   = 0.9  * TARGET_FPS * TARGET_FPS;
+const JUMP_V_S    = -13.5 * TARGET_FPS;
+const SPEED_S     = 4.8  * TARGET_FPS;
+const ROT_GROUND  = 0.15 * TARGET_FPS;
+const ROT_AIR     = 0.12 * TARGET_FPS;
 
-// Delta-time tracking
 let lastTime = null;
-const MAX_DT = 1 / 20; // cap at 50 ms so a tab-switch doesn't explode the sim
+const MAX_DT = 1 / 20;
 
-// ══════════════════════════════════════
-//  LEVEL THEMES
-// ══════════════════════════════════════
 const THEMES = [
   { name:'NEON VOID',    bg:'#07020f', ground:'#1a0835', accent:'#cc88ff', cube:'#dd99ff', spike:'#ff44cc', glow:'#cc88ff' },
   { name:'FIRE ZONE',    bg:'#0f0400', ground:'#200a00', accent:'#ff6622', cube:'#ffaa44', spike:'#ff2200', glow:'#ff6622' },
@@ -194,9 +176,6 @@ const THEMES = [
   { name:'SOLAR DRIFT',  bg:'#0f0a00', ground:'#1a1200', accent:'#ffdd00', cube:'#ffee66', spike:'#ffaa00', glow:'#ffdd00' },
 ];
 
-// ══════════════════════════════════════
-//  PROCEDURAL LEVEL GENERATION
-// ══════════════════════════════════════
 function generateLevel(seed) {
   const rng = mulberry32(seed);
   const segments = [];
@@ -244,9 +223,6 @@ function mulberry32(a) {
   };
 }
 
-// ══════════════════════════════════════
-//  GAME STATE
-// ══════════════════════════════════════
 let state     = 'idle';
 let attempt   = 1;
 let bestPct   = 0;
@@ -257,7 +233,6 @@ let rafId;
 let deathFlash = 0;
 let winFlash   = 0;
 
-// death/win flash now tracked in seconds, not frames
 const DEATH_FLASH_DUR = 20 / TARGET_FPS;
 const WIN_FLASH_DUR   = 30 / TARGET_FPS;
 
@@ -277,7 +252,7 @@ function initRun() {
   player = {
     x: W * 0.22,
     y: GROUND_Y - TILE,
-    vy: 0,       // px/s
+    vy: 0,
     rot: 0,
     onGround: false,
     dead: false,
@@ -287,7 +262,7 @@ function initRun() {
   const rng = mulberry32(currentLevel * 17 + 3);
   bgStars = Array.from({ length: 40 }, () => ({
     x: rng() * W, y: rng() * GROUND_Y * 0.9,
-    r: 0.5 + rng() * 1.5, spd: (0.2 + rng() * 0.6) * TARGET_FPS, // px/s
+    r: 0.5 + rng() * 1.5, spd: (0.2 + rng() * 0.6) * TARGET_FPS,
     alpha: 0.2 + rng() * 0.5,
   }));
 
@@ -295,9 +270,6 @@ function initRun() {
   lastTime = null;
 }
 
-// ══════════════════════════════════════
-//  COLLISION
-// ══════════════════════════════════════
 function getObstacles() {
   const obs = [];
   const margin = W * 0.5;
@@ -329,9 +301,6 @@ function rectsOverlap(a, b) {
          a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
-// ══════════════════════════════════════
-//  INPUT
-// ══════════════════════════════════════
 const keys = {};
 window.addEventListener('keydown', e => {
   if (e.code === 'Space') { e.preventDefault(); keys.space = true; }
@@ -353,9 +322,6 @@ canvas.addEventListener('touchstart', e => { e.preventDefault(); tryJump(); }, {
 canvas.addEventListener('touchend',   e => e.preventDefault(), { passive: false });
 startBtn.addEventListener('click',    startGame);
 
-// ══════════════════════════════════════
-//  UPDATE  (dt = seconds since last frame)
-// ══════════════════════════════════════
 function update(dt) {
   if (player.dead) {
     deathFlash = Math.max(0, deathFlash - dt);
@@ -370,34 +336,27 @@ function update(dt) {
   }
   if (winFlash > 0) { winFlash = Math.max(0, winFlash - dt); return; }
 
-  // Jump input
   if (keys.space && player.onGround) tryJump();
 
-  // Physics — all scaled by dt
   player.vy += GRAVITY_S * dt;
   player.y  += player.vy * dt;
 
-  // Camera
   camX += SPEED_S * dt;
 
-  // Progress
   const pct = Math.min(100, Math.round((camX / (level.totalLen - W)) * 100));
   progressBar.style.width = pct + '%';
   if (pct > bestPct) { bestPct = pct; bestEl.textContent = bestPct + '%'; }
 
-  // Win
   if (camX >= level.totalLen - W - TILE * 2) { winGame(); return; }
 
   player.onGround = false;
 
-  // Ground collision
   if (player.y + TILE >= GROUND_Y) {
     player.y = GROUND_Y - TILE;
     player.vy = 0;
     player.onGround = true;
   }
 
-  // Obstacle collision
   const pr = playerRect();
   for (const obs of getObstacles()) {
     const sr = { x: obs.x - camX, y: obs.y, w: obs.w, h: obs.h };
@@ -417,17 +376,13 @@ function update(dt) {
     }
   }
 
-  // Rotation (rad/s * dt)
   player.rot += (player.onGround ? ROT_GROUND : ROT_AIR) * dt;
 
-  // Trail — push every frame, still fine
   player.trail.push({ x: player.x, y: player.y, rot: player.rot });
   if (player.trail.length > 8) player.trail.shift();
 
-  // Stars
   bgStars.forEach(s => { s.x -= s.spd * dt; if (s.x < 0) s.x = W; });
 
-  // Particles
   particles.forEach(p => {
     p.x  += p.vx * dt;
     p.y  += p.vy * dt;
@@ -437,9 +392,6 @@ function update(dt) {
   particles = particles.filter(p => p.life > 0);
 }
 
-// ══════════════════════════════════════
-//  DRAW  (unchanged)
-// ══════════════════════════════════════
 function draw() {
   ctx.fillStyle = theme.bg;
   ctx.fillRect(0, 0, W, H);
@@ -594,9 +546,6 @@ function drawPlatform(x, y, w) {
   ctx.shadowBlur = 0;
 }
 
-// ══════════════════════════════════════
-//  PARTICLES
-// ══════════════════════════════════════
 function spawnJumpParticles() {
   for (let i = 0; i < 6; i++) {
     particles.push({
@@ -623,9 +572,6 @@ function spawnDeathParticles() {
   }
 }
 
-// ══════════════════════════════════════
-//  GAME FLOW
-// ══════════════════════════════════════
 function die() {
   if (player.dead) return;
   player.dead = true;
@@ -679,12 +625,8 @@ function startGame() {
   state = 'playing';
 }
 
-// ══════════════════════════════════════
-//  LOOP — delta-time driven
-// ══════════════════════════════════════
 function loop(timestamp) {
   if (state === 'playing' || state === 'dead') {
-    // Compute dt in seconds
     if (lastTime === null) lastTime = timestamp;
     const dt = Math.min((timestamp - lastTime) / 1000, MAX_DT);
     lastTime = timestamp;
@@ -695,11 +637,9 @@ function loop(timestamp) {
   rafId = requestAnimationFrame(loop);
 }
 
-// Init
 initLevel(1);
 initRun();
 
-// Idle draw
 (function idleDraw() {
   ctx.fillStyle = theme.bg;
   ctx.fillRect(0, 0, W, H);
