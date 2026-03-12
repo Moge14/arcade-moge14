@@ -29,13 +29,12 @@
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior:smooth; }
 
-/* ─── MATHS LOGIN SCREEN ─── */
+/* ─── MATHS MAIN SCREEN ─── */
 #mathsScreen {
-  position:fixed; inset:0; z-index:200;
   background:var(--m-bg);
   font-family:'Inter',sans-serif;
   color:var(--m-text);
-  display:flex; flex-direction:column; min-height:100vh;
+  min-height:100vh;
   overflow-y:auto;
 }
 
@@ -45,12 +44,12 @@ html { scroll-behavior:smooth; }
   padding:0 2rem; height:60px;
   display:flex; align-items:center; justify-content:space-between;
   box-shadow:0 1px 4px rgba(0,0,0,0.06);
-  flex-shrink:0;
+  position:sticky; top:0; z-index:50;
 }
 .m-logo {
   display:flex; align-items:center; gap:10px;
   font-weight:600; font-size:1.1rem;
-  color:var(--m-blue); text-decoration:none;
+  color:var(--m-blue); text-decoration:none; cursor:pointer;
 }
 .m-logo-icon {
   width:34px; height:34px; background:var(--m-blue);
@@ -60,7 +59,7 @@ html { scroll-behavior:smooth; }
 }
 .m-nav-links { display:flex; gap:1.8rem; font-size:0.88rem; color:var(--m-muted); list-style:none; }
 .m-nav-links li { cursor:pointer; transition:color 0.15s; }
-.m-nav-links li:hover { color:var(--m-blue); }
+.m-nav-links li:hover, .m-nav-links li.active { color:var(--m-blue); font-weight:600; }
 .m-nav-right { display:flex; gap:0.75rem; align-items:center; }
 .m-btn-outline {
   padding:6px 16px; border:1px solid var(--m-blue); color:var(--m-blue);
@@ -69,121 +68,304 @@ html { scroll-behavior:smooth; }
 }
 .m-btn-outline:hover { background:var(--m-blue-light); }
 
-.m-body {
-  flex:1; display:flex; align-items:flex-start; justify-content:center;
-  padding:3rem 1.5rem 2rem; gap:3rem; flex-wrap:wrap;
-  position:relative;
+/* ─── HOME DASHBOARD ─── */
+#homeView {
+  max-width:1100px; margin:0 auto; padding:3rem 1.5rem 4rem;
+}
+.home-welcome {
+  background:linear-gradient(135deg,#1a56db 0%,#1e40af 100%);
+  border-radius:16px; padding:2.5rem; color:white; margin-bottom:2.5rem;
+  position:relative; overflow:hidden;
+}
+.home-welcome::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(circle at 80% 50%, rgba(255,255,255,0.08) 0%, transparent 60%);
+}
+.home-welcome h2 { font-family:'Source Serif 4',serif; font-size:1.9rem; margin-bottom:0.5rem; }
+.home-welcome p { opacity:0.85; font-size:0.95rem; line-height:1.6; }
+.home-welcome .hw-stats {
+  display:flex; gap:2rem; margin-top:1.8rem;
+  padding-top:1.5rem; border-top:1px solid rgba(255,255,255,0.2);
+}
+.hw-stat { color:white; }
+.hw-stat-val { font-size:1.5rem; font-weight:700; display:block; }
+.hw-stat-label { font-size:0.75rem; opacity:0.7; }
+
+.home-sections { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1.2rem; }
+.home-card {
+  background:white; border:1px solid var(--m-border); border-radius:12px;
+  padding:1.5rem; cursor:pointer; transition:all 0.2s;
+  text-decoration:none; color:inherit; display:block;
+}
+.home-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(26,86,219,0.12); border-color:#93c5fd; }
+.home-card-icon { font-size:2rem; margin-bottom:1rem; }
+.home-card h3 { font-family:'Source Serif 4',serif; font-size:1.05rem; font-weight:600; margin-bottom:0.4rem; }
+.home-card p { font-size:0.8rem; color:var(--m-muted); line-height:1.6; }
+.home-card .hc-tag {
+  display:inline-block; margin-top:0.8rem; font-size:0.7rem; font-weight:600;
+  letter-spacing:0.05em; color:var(--m-blue); background:var(--m-blue-light);
+  padding:3px 10px; border-radius:20px;
 }
 
-/* Floating maths symbols */
-.m-symbol {
-  position:absolute; font-family:'Source Serif 4',serif; font-style:italic;
-  font-size:5rem; color:rgba(26,86,219,0.045);
-  pointer-events:none; user-select:none; z-index:0;
+/* ─── SHARED VIEWS ─── */
+.view-header {
+  padding:2.5rem 1.5rem 0; max-width:1100px; margin:0 auto;
+  display:flex; align-items:center; gap:1rem;
+}
+.back-btn {
+  background:none; border:1px solid var(--m-border); border-radius:7px;
+  padding:6px 14px; font-family:'Inter',sans-serif; font-size:0.8rem;
+  color:var(--m-muted); cursor:pointer; transition:all 0.15s;
+}
+.back-btn:hover { border-color:var(--m-blue); color:var(--m-blue); }
+.view-title { font-family:'Source Serif 4',serif; font-size:1.5rem; font-weight:600; }
+.view-content { max-width:1100px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+
+/* ─── FLASHCARDS ─── */
+#fcTopicBtns { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.5rem; }
+.fc-topic-btn {
+  padding:6px 16px; border-radius:20px; border:1px solid var(--m-border);
+  background:white; color:var(--m-muted); font-family:'Inter',sans-serif;
+  font-size:0.8rem; cursor:pointer; transition:all 0.15s;
+}
+.fc-topic-btn.active { background:var(--m-blue); color:white; border-color:var(--m-blue); }
+.fc-progress-bar { flex:1; height:6px; background:var(--m-border); border-radius:999px; overflow:hidden; }
+.fc-progress-fill { height:100%; background:var(--m-blue); border-radius:999px; transition:width 0.3s; width:0%; }
+.fc-card {
+  background:white; border:1px solid var(--m-border); border-radius:16px;
+  padding:3rem 2rem; text-align:center; cursor:pointer;
+  box-shadow:0 4px 24px rgba(0,0,0,0.07); min-height:220px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:1rem; transition:transform 0.15s,box-shadow 0.15s; user-select:none;
+}
+.fc-card:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.1); }
+.fc-mark-btn {
+  padding:0.7rem 2.5rem; border-radius:8px; font-family:'Inter',sans-serif;
+  font-size:0.9rem; font-weight:600; cursor:pointer; border:1px solid;
 }
 
-.m-hero { max-width:420px; padding-top:1.5rem; position:relative; z-index:1; }
-.m-badge {
-  display:inline-block; background:var(--m-blue-light); color:var(--m-blue);
-  font-size:0.72rem; font-weight:600; letter-spacing:0.04em;
-  padding:4px 12px; border-radius:20px; margin-bottom:1.2rem;
+/* ─── LESSONS ─── */
+.lesson-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.2rem; }
+.lesson-card {
+  background:white; border:1px solid var(--m-border); border-radius:12px;
+  overflow:hidden; cursor:pointer; transition:all 0.2s;
 }
-.m-hero h1 {
-  font-family:'Source Serif 4',serif; font-size:2.4rem; font-weight:600;
-  line-height:1.25; color:var(--m-text); margin-bottom:1rem;
+.lesson-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(26,86,219,0.12); }
+.lesson-card-header {
+  padding:1.5rem; color:white; font-family:'Source Serif 4',serif;
+  font-size:1.1rem; font-weight:600;
 }
-.m-hero p { font-size:0.95rem; color:var(--m-muted); line-height:1.7; margin-bottom:1.8rem; }
-.m-features { display:flex; flex-direction:column; gap:0.75rem; list-style:none; }
-.m-features li {
-  display:flex; align-items:center; gap:0.6rem;
-  font-size:0.88rem; color:var(--m-muted);
+.lesson-card-body { padding:1.2rem; }
+.lesson-card-body p { font-size:0.82rem; color:var(--m-muted); line-height:1.6; margin-bottom:0.8rem; }
+.lesson-tag {
+  font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:20px;
+  background:var(--m-blue-light); color:var(--m-blue);
 }
-.m-features li::before {
-  content:'✓'; width:20px; height:20px; background:#dcfce7;
-  color:var(--m-green); border-radius:50%;
-  display:inline-flex; align-items:center; justify-content:center;
-  font-size:0.7rem; font-weight:700; flex-shrink:0;
-}
-.m-stats {
-  display:flex; gap:2rem; margin-top:2.5rem;
-  padding-top:2rem; border-top:1px solid var(--m-border);
-}
-.m-stat-val {
-  font-family:'Source Serif 4',serif; font-size:1.6rem; font-weight:600;
-  color:var(--m-blue); display:block;
-}
-.m-stat-label { font-size:0.75rem; color:var(--m-muted); margin-top:2px; }
 
-.m-login-card {
-  background:var(--m-panel); border:1px solid var(--m-border);
-  border-radius:12px; padding:2.2rem 2rem;
-  width:100%; max-width:380px;
-  box-shadow:0 4px 24px rgba(0,0,0,0.08);
-  flex-shrink:0; position:relative; z-index:1;
+/* ─── LESSON CONTENT ─── */
+#lessonContent { display:none; }
+.lesson-body {
+  background:white; border:1px solid var(--m-border); border-radius:12px; padding:2.5rem;
+  font-size:0.95rem; line-height:1.8; color:var(--m-text);
 }
-.m-login-card h2 {
-  font-family:'Source Serif 4',serif; font-size:1.4rem; font-weight:600;
-  color:var(--m-text); margin-bottom:0.35rem;
+.lesson-body h2 { font-family:'Source Serif 4',serif; font-size:1.5rem; margin:1.8rem 0 0.8rem; color:var(--m-text); }
+.lesson-body h3 { font-family:'Source Serif 4',serif; font-size:1.15rem; margin:1.4rem 0 0.6rem; color:var(--m-blue); }
+.lesson-body p { margin-bottom:1rem; }
+.lesson-body ul, .lesson-body ol { margin-left:1.5rem; margin-bottom:1rem; }
+.lesson-body li { margin-bottom:0.4rem; }
+.formula-box {
+  background:#f0f7ff; border:2px solid #bfdbfe; border-radius:10px;
+  padding:1.2rem 1.5rem; margin:1.2rem 0; font-size:1.05rem;
+  font-family:'Source Serif 4',serif; text-align:center; color:#1e40af;
 }
-.m-card-sub { font-size:0.83rem; color:var(--m-muted); margin-bottom:1.8rem; }
-.m-field { margin-bottom:1.1rem; }
-.m-label { display:block; font-size:0.8rem; font-weight:500; color:var(--m-text); margin-bottom:0.4rem; }
-.m-input {
-  width:100%; padding:0.6rem 0.85rem;
-  border:1px solid var(--m-border); border-radius:7px;
-  font-size:0.9rem; font-family:'Inter',sans-serif;
-  color:var(--m-text); background:white; outline:none;
-  transition:border-color 0.15s, box-shadow 0.15s;
+.example-box {
+  background:#f8fafc; border-left:4px solid var(--m-blue);
+  border-radius:0 10px 10px 0; padding:1.2rem 1.5rem; margin:1.2rem 0;
 }
-.m-input:focus { border-color:var(--m-blue); box-shadow:0 0 0 3px rgba(26,86,219,0.12); }
-.m-input.m-err { border-color:var(--m-red); box-shadow:0 0 0 3px rgba(220,38,38,0.1); }
-.m-input.m-shake { animation:mShake 0.38s ease; }
-@keyframes mShake {
-  0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)}
-  40%{transform:translateX(7px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)}
+.example-box .ex-label {
+  font-size:0.7rem; font-weight:700; letter-spacing:0.1em; color:var(--m-blue);
+  margin-bottom:0.5rem; text-transform:uppercase;
 }
-.m-error-msg { font-size:0.75rem; color:var(--m-red); margin-top:0.35rem; min-height:1rem; }
-.m-forgot {
-  display:block; font-size:0.75rem; color:var(--m-blue);
-  text-align:right; margin-top:-0.5rem; margin-bottom:1.2rem; cursor:pointer;
+.step { display:flex; gap:1rem; align-items:flex-start; margin:0.6rem 0; }
+.step-num {
+  width:26px; height:26px; background:var(--m-blue); color:white; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:0.75rem;
+  font-weight:700; flex-shrink:0; margin-top:2px;
 }
-.m-forgot:hover { text-decoration:underline; }
-.m-submit {
-  width:100%; padding:0.72rem; background:var(--m-blue);
-  border:none; border-radius:7px; color:white;
-  font-family:'Inter',sans-serif; font-size:0.9rem; font-weight:600;
-  cursor:pointer; transition:background 0.15s, box-shadow 0.15s; margin-top:0.3rem;
+.key-fact {
+  background:#fef9c3; border:1px solid #fde047; border-radius:8px;
+  padding:0.9rem 1.2rem; margin:1rem 0; font-size:0.88rem;
 }
-.m-submit:hover { background:#1648c0; box-shadow:0 4px 12px rgba(26,86,219,0.25); }
-.m-submit:disabled { background:#93c5fd; cursor:not-allowed; }
-.m-divider {
-  display:flex; align-items:center; gap:0.75rem;
-  margin:1.3rem 0; font-size:0.75rem; color:var(--m-muted);
+.key-fact strong { color:#92400e; }
+.lesson-nav {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:2rem; padding-top:2rem; border-top:1px solid var(--m-border);
 }
-.m-divider::before,.m-divider::after { content:''; flex:1; height:1px; background:var(--m-border); }
-.m-signup { text-align:center; font-size:0.8rem; color:var(--m-muted); margin-top:1.2rem; }
-.m-signup a { color:var(--m-blue); text-decoration:none; cursor:pointer; }
-.m-signup a:hover { text-decoration:underline; }
-.m-lock-notice { font-size:0.75rem; text-align:center; color:var(--m-red); margin-top:0.5rem; min-height:1rem; }
+.lesson-nav-btn {
+  padding:0.6rem 1.5rem; border-radius:8px; font-family:'Inter',sans-serif;
+  font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.15s;
+}
+.lesson-nav-btn.primary { background:var(--m-blue); border:none; color:white; }
+.lesson-nav-btn.primary:hover { background:#1648c0; }
+.lesson-nav-btn.secondary { background:white; border:1px solid var(--m-border); color:var(--m-muted); }
+.lesson-nav-btn.secondary:hover { border-color:var(--m-blue); color:var(--m-blue); }
+.progress-dots { display:flex; gap:6px; }
+.progress-dot {
+  width:8px; height:8px; border-radius:50%; background:var(--m-border); transition:background 0.2s;
+}
+.progress-dot.done { background:var(--m-blue); }
+.progress-dot.current { background:var(--m-blue); box-shadow:0 0 0 3px rgba(26,86,219,0.2); }
 
-.m-footer {
-  background:var(--m-panel); border-top:1px solid var(--m-border);
-  padding:1.2rem 2rem; display:flex;
-  justify-content:space-between; align-items:center;
-  font-size:0.75rem; color:var(--m-muted); flex-shrink:0;
-  flex-wrap:wrap; gap:0.5rem;
+/* ─── PYTHAGORAS CALCULATOR ─── */
+.pyth-calc {
+  background:white; border:1px solid var(--m-border); border-radius:16px;
+  padding:2rem; max-width:680px; margin:0 auto;
 }
-.m-footer-links { display:flex; gap:1.5rem; flex-wrap:wrap; }
-.m-footer-links a { color:var(--m-muted); text-decoration:none; }
-.m-footer-links a:hover { color:var(--m-blue); }
+.pyth-triangle {
+  text-align:center; padding:2rem 0; position:relative;
+}
+.pyth-svg { max-width:280px; margin:0 auto; display:block; }
+.calc-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin:1.5rem 0; }
+.calc-field label { display:block; font-size:0.78rem; font-weight:600; color:var(--m-muted); margin-bottom:0.4rem; }
+.calc-input {
+  width:100%; padding:0.65rem 0.9rem; border:1px solid var(--m-border); border-radius:8px;
+  font-size:1rem; font-family:'Source Serif 4',serif; text-align:center; color:var(--m-text);
+  outline:none; transition:border-color 0.15s;
+}
+.calc-input:focus { border-color:var(--m-blue); box-shadow:0 0 0 3px rgba(26,86,219,0.12); }
+.calc-input.unknown { background:#f0f7ff; border-color:#bfdbfe; }
+.calc-btn {
+  width:100%; padding:0.8rem; background:var(--m-blue); border:none; border-radius:8px;
+  color:white; font-family:'Inter',sans-serif; font-size:0.95rem; font-weight:600;
+  cursor:pointer; transition:all 0.15s; margin-bottom:0.75rem;
+}
+.calc-btn:hover { background:#1648c0; box-shadow:0 4px 12px rgba(26,86,219,0.25); }
+.calc-result {
+  text-align:center; padding:1.2rem; background:#f0fdf4; border:1px solid #86efac;
+  border-radius:10px; font-size:1.1rem; font-family:'Source Serif 4',serif; color:#15803d;
+  display:none;
+}
+.calc-error {
+  text-align:center; padding:1rem; background:#fef2f2; border:1px solid #fca5a5;
+  border-radius:10px; font-size:0.9rem; color:var(--m-red); display:none;
+}
+.calc-tabs { display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+.calc-tab {
+  padding:7px 16px; border-radius:20px; border:1px solid var(--m-border);
+  background:white; color:var(--m-muted); font-family:'Inter',sans-serif;
+  font-size:0.82rem; cursor:pointer; transition:all 0.15s;
+}
+.calc-tab.active { background:var(--m-blue); color:white; border-color:var(--m-blue); }
 
-/* ─── ARCADE LAUNCHER ─── */
-#launcher { display:none; }
+/* Volume calculator */
+.vol-shape-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:0.75rem; margin-bottom:1.5rem; }
+.vol-shape-btn {
+  padding:1rem 0.5rem; border:1px solid var(--m-border); border-radius:10px;
+  background:white; cursor:pointer; text-align:center; transition:all 0.2s;
+  font-family:'Inter',sans-serif;
+}
+.vol-shape-btn:hover { border-color:var(--m-blue); }
+.vol-shape-btn.active { border-color:var(--m-blue); background:var(--m-blue-light); }
+.vol-shape-btn .vs-icon { font-size:1.8rem; display:block; margin-bottom:0.4rem; }
+.vol-shape-btn .vs-name { font-size:0.72rem; font-weight:600; color:var(--m-muted); }
 
+/* ─── QUIZ ─── */
+.quiz-q {
+  background:white; border:1px solid var(--m-border); border-radius:12px; padding:2rem;
+}
+.quiz-progress { font-size:0.78rem; color:var(--m-muted); margin-bottom:1rem; }
+.quiz-question { font-family:'Source Serif 4',serif; font-size:1.2rem; margin-bottom:1.5rem; line-height:1.5; }
+.quiz-options { display:flex; flex-direction:column; gap:0.75rem; }
+.quiz-option {
+  padding:0.9rem 1.2rem; border:1px solid var(--m-border); border-radius:8px;
+  cursor:pointer; font-size:0.9rem; transition:all 0.15s;
+  background:white; text-align:left; font-family:'Inter',sans-serif;
+}
+.quiz-option:hover:not(:disabled) { border-color:var(--m-blue); background:var(--m-blue-light); }
+.quiz-option.correct { background:#dcfce7; border-color:#16a34a; color:#15803d; }
+.quiz-option.wrong { background:#fee2e2; border-color:#dc2626; color:#b91c1c; }
+.quiz-feedback {
+  padding:1rem 1.2rem; border-radius:8px; margin-top:1.2rem; font-size:0.88rem;
+  display:none; line-height:1.6;
+}
+.quiz-feedback.correct { background:#dcfce7; border:1px solid #86efac; color:#15803d; }
+.quiz-feedback.wrong { background:#fee2e2; border:1px solid #fca5a5; color:#b91c1c; }
+.quiz-next {
+  margin-top:1rem; padding:0.7rem 1.8rem; background:var(--m-blue); border:none;
+  color:white; border-radius:8px; font-family:'Inter',sans-serif; font-size:0.9rem;
+  font-weight:600; cursor:pointer; display:none; transition:background 0.15s;
+}
+.quiz-next:hover { background:#1648c0; }
+.quiz-score-card {
+  background:white; border:1px solid var(--m-border); border-radius:12px;
+  padding:3rem 2rem; text-align:center; display:none;
+}
+.score-emoji { font-size:3.5rem; margin-bottom:1rem; }
+.score-title { font-family:'Source Serif 4',serif; font-size:1.6rem; margin-bottom:0.5rem; }
+.score-sub { color:var(--m-muted); font-size:0.9rem; margin-bottom:1.8rem; }
+.score-badge {
+  display:inline-block; font-size:2rem; font-weight:700; color:var(--m-blue);
+  font-family:'Source Serif 4',serif; margin-bottom:1.5rem;
+}
+.score-retry {
+  padding:0.7rem 2rem; background:var(--m-blue); border:none; color:white;
+  border-radius:8px; font-family:'Inter',sans-serif; font-size:0.9rem; font-weight:600;
+  cursor:pointer;
+}
+
+/* ─── ARCADE PASSWORD MODAL ─── */
+#arcadeModal {
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:rgba(7,7,13,0.92); backdrop-filter:blur(8px);
+  align-items:center; justify-content:center;
+}
+#arcadeModal.open { display:flex; }
+.arcade-modal-inner {
+  background:#0d0d1a; border:1px solid rgba(0,255,136,0.25);
+  border-radius:4px; padding:2.5rem; width:100%; max-width:380px;
+  text-align:center; position:relative;
+  box-shadow:0 0 60px rgba(0,255,136,0.1);
+  animation:arcadeIn 0.3s ease;
+}
+@keyframes arcadeIn { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
+.arcade-modal-inner h3 {
+  font-family:'Orbitron',sans-serif; font-size:1.1rem; letter-spacing:0.2em;
+  color:#00ff88; text-shadow:0 0 12px #00ff88; margin-bottom:0.5rem;
+}
+.arcade-modal-inner p {
+  font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+  letter-spacing:0.2em; color:rgba(0,255,136,0.4); margin-bottom:1.8rem;
+}
+.arcade-pw-input {
+  width:100%; padding:0.75rem; background:#070710; border:1px solid rgba(0,255,136,0.3);
+  color:#00ff88; font-family:'Share Tech Mono',monospace; font-size:1rem;
+  letter-spacing:0.2em; text-align:center; border-radius:3px; outline:none;
+  transition:border-color 0.2s;
+}
+.arcade-pw-input:focus { border-color:#00ff88; box-shadow:0 0 0 3px rgba(0,255,136,0.1); }
+.arcade-pw-err { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:#ff4466; margin-top:0.5rem; min-height:1em; }
+.arcade-enter-btn {
+  margin-top:1rem; width:100%; padding:0.7rem;
+  background:transparent; border:1px solid #00ff88; color:#00ff88;
+  font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:0.2em;
+  cursor:pointer; border-radius:3px; transition:all 0.2s;
+}
+.arcade-enter-btn:hover { background:rgba(0,255,136,0.08); box-shadow:0 0 16px rgba(0,255,136,0.15); }
+.arcade-modal-close {
+  position:absolute; top:12px; right:14px; background:none; border:none;
+  color:rgba(0,255,136,0.3); cursor:pointer; font-size:1rem; transition:color 0.15s;
+}
+.arcade-modal-close:hover { color:#ff4466; }
+
+/* ─── ARCADE (existing styles kept) ─── */
 body.arcade-mode {
   background:var(--bg); color:var(--green);
   font-family:'Share Tech Mono',monospace; cursor:crosshair;
 }
+body.arcade-mode #mathsScreen, body.arcade-mode #flashcardsView,
+body.arcade-mode #lessonsView, body.arcade-mode #lessonContent,
+body.arcade-mode #calculatorsView, body.arcade-mode #quizView,
+body.arcade-mode #homeView { display:none !important; }
 body.arcade-mode::before {
   content:''; position:fixed; inset:0;
   background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,255,136,0.012) 3px,rgba(0,255,136,0.012) 4px);
@@ -194,11 +376,9 @@ body.arcade-mode::after {
   background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,0.75) 100%);
   pointer-events:none; z-index:99;
 }
-
 @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 .fade-in { animation:fadeIn 0.6s ease both; }
-
-header {
+header.arcade-header {
   position:relative; text-align:center;
   padding:3.5rem 1rem 2rem;
   border-bottom:1px solid var(--border); overflow:hidden;
@@ -213,14 +393,14 @@ header {
   animation:blink 1.2s step-end infinite; margin-bottom:0.8rem;
 }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-h1 {
+.arcade-title {
   font-family:'Orbitron',sans-serif; font-weight:900;
   font-size:clamp(3rem,10vw,6rem); letter-spacing:0.18em; line-height:1;
   color:var(--green);
   text-shadow:0 0 20px var(--green),0 0 60px rgba(0,255,136,0.5),0 0 120px rgba(0,255,136,0.2);
   position:relative;
 }
-h1::before {
+.arcade-title::before {
   content:'ARCADE'; position:absolute; inset:0;
   color:transparent; -webkit-text-stroke:1px rgba(0,255,136,0.2);
   transform:translate(3px,3px); z-index:-1;
@@ -244,7 +424,7 @@ h1::before {
   font-size:0.6rem; letter-spacing:0.15em; padding:3px 10px; cursor:pointer; transition:all 0.2s;
 }
 .logout-btn:hover { border-color:var(--red); color:var(--red); }
-main { max-width:1100px; margin:0 auto; padding:3rem 1.5rem 5rem; }
+.arcade-main { max-width:1100px; margin:0 auto; padding:3rem 1.5rem 5rem; }
 .section-label {
   font-size:0.65rem; letter-spacing:0.5em; color:rgba(0,255,136,0.35);
   margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem;
@@ -342,7 +522,7 @@ main { max-width:1100px; margin:0 auto; padding:3rem 1.5rem 5rem; }
 .devlog-title { font-family:'Orbitron',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; color:rgba(0,255,136,0.9); margin-bottom:0.45rem; line-height:1.4; }
 .devlog-body { font-size:0.67rem; letter-spacing:0.06em; color:rgba(255,255,255,0.38); line-height:1.75; }
 .devlog-empty { font-size:0.65rem; letter-spacing:0.3em; color:rgba(0,255,136,0.2); text-align:center; padding:2rem 0; }
-footer {
+footer.arcade-footer {
   text-align:center; padding:1.5rem; font-size:0.6rem; letter-spacing:0.3em;
   color:rgba(0,255,136,0.18); border-top:1px solid var(--border);
 }
@@ -350,252 +530,359 @@ footer {
 ::-webkit-scrollbar-track { background:var(--bg); }
 ::-webkit-scrollbar-thumb { background:rgba(0,255,136,0.2); border-radius:3px; }
 ::-webkit-scrollbar-thumb:hover { background:rgba(0,255,136,0.4); }
+
+/* Footer with hidden arcade trigger */
+.m-footer {
+  background:var(--m-panel); border-top:1px solid var(--m-border);
+  padding:1.2rem 2rem; display:flex;
+  justify-content:space-between; align-items:center;
+  font-size:0.75rem; color:var(--m-muted);
+  flex-wrap:wrap; gap:0.5rem;
+}
+.m-footer-links { display:flex; gap:1.5rem; flex-wrap:wrap; }
+.m-footer-links a { color:var(--m-muted); text-decoration:none; cursor:pointer; }
+.m-footer-links a:hover { color:var(--m-blue); }
+.m-footer-links a.hidden-arcade-link {
+  position:relative; transition:color 0.15s;
+}
+/* Subtle visual hint - barely visible on hover for those who know */
+.m-footer-links a.hidden-arcade-link::after {
+  content:''; position:absolute; bottom:-2px; left:0; right:0; height:1px;
+  background:var(--m-blue); transform:scaleX(0); transition:transform 0.2s;
+}
+.m-footer-links a.hidden-arcade-link:hover::after { transform:scaleX(1); }
 </style>
 </head>
 <body>
 
-<!-- ─── MATHS DISGUISE LOGIN ─── -->
+<!-- ─── ARCADE PASSWORD MODAL ─── -->
+<div id="arcadeModal">
+  <div class="arcade-modal-inner">
+    <button class="arcade-modal-close" onclick="closeArcadeModal()">✕</button>
+    <h3>// ARCADE ACCESS //</h3>
+    <p>ENTER ACCESS CODE TO PROCEED</p>
+    <input class="arcade-pw-input" type="password" id="arcadePwInput" placeholder="_ _ _ _ _ _ _ _ _ _" maxlength="20" />
+    <div class="arcade-pw-err" id="arcadePwErr"></div>
+    <button class="arcade-enter-btn" onclick="tryArcadeLogin()">▶ ENTER</button>
+  </div>
+</div>
+
+<!-- ─── MATHS MAIN SHELL ─── -->
 <div id="mathsScreen">
-  <span class="m-symbol" style="top:15%;left:3%">∑</span>
-  <span class="m-symbol" style="top:35%;left:1%">π</span>
-  <span class="m-symbol" style="top:62%;left:5%">∫</span>
-  <span class="m-symbol" style="top:78%;left:2%">√</span>
-  <span class="m-symbol" style="top:10%;right:4%">∞</span>
-  <span class="m-symbol" style="top:42%;right:2%">Δ</span>
-  <span class="m-symbol" style="top:68%;right:5%">θ</span>
-  <span class="m-symbol" style="top:85%;right:3%">∂</span>
-  <span class="m-symbol" style="top:25%;right:18%">λ</span>
-  <span class="m-symbol" style="top:55%;left:18%">μ</span>
-
   <nav class="m-nav">
-    <a class="m-logo" href="#">
+    <a class="m-logo" onclick="showView('home')">
       <div class="m-logo-icon">M</div>
       MathsZone
     </a>
     <ul class="m-nav-links">
-      <li>Courses</li><li>Practice</li><li>Competitions</li><li>Resources</li>
+      <li onclick="showView('home')" id="nav-home" class="active">Home</li>
+      <li onclick="showView('flashcards')" id="nav-flashcards">Flashcards</li>
+      <li onclick="showView('lessons')" id="nav-lessons">Lessons</li>
+      <li onclick="showView('calculators')" id="nav-calculators">Calculators</li>
+      <li onclick="showView('quiz')" id="nav-quiz">Quiz</li>
     </ul>
     <div class="m-nav-right">
-      <button class="m-btn-outline">Sign up free</button>
+      <!-- intentionally left empty — logged in automatically -->
     </div>
   </nav>
 
-  <div class="m-body">
-    <div class="m-hero">
-      <div class="m-badge">🎓 Trusted by 50,000+ students</div>
-      <h1>Master Maths at your own pace</h1>
-      <p>From GCSE to A-Level and beyond — interactive lessons, instant feedback, and a curriculum built around how you actually learn.</p>
-      <ul class="m-features">
-        <li>Adaptive practice problems for every level</li>
-        <li>Step-by-step worked solutions</li>
-        <li>Progress tracking and performance insights</li>
-        <li>Covers Pure, Statistics &amp; Mechanics</li>
-      </ul>
-      <div class="m-stats">
-        <div><span class="m-stat-val">50k+</span><div class="m-stat-label">Active students</div></div>
-        <div><span class="m-stat-val">2,400</span><div class="m-stat-label">Practice questions</div></div>
-        <div><span class="m-stat-val">98%</span><div class="m-stat-label">Satisfaction rate</div></div>
+  <!-- HOME -->
+  <div id="homeView">
+    <div style="max-width:1100px;margin:0 auto;padding:3rem 1.5rem 4rem;">
+      <div class="home-welcome">
+        <h2>Good to see you! 👋</h2>
+        <p>Pick up where you left off, or explore something new. All Year 9 topics are unlocked.</p>
+        <div class="hw-stats">
+          <div class="hw-stat"><span class="hw-stat-val">5</span><div class="hw-stat-label">Topics</div></div>
+          <div class="hw-stat"><span class="hw-stat-val">60+</span><div class="hw-stat-label">Flashcards</div></div>
+          <div class="hw-stat"><span class="hw-stat-val">7</span><div class="hw-stat-label">Lessons</div></div>
+          <div class="hw-stat"><span class="hw-stat-val">2</span><div class="hw-stat-label">Calculators</div></div>
+        </div>
+      </div>
+      <div class="home-sections">
+        <div class="home-card" onclick="showView('flashcards')">
+          <div class="home-card-icon">🃏</div>
+          <h3>Flashcards</h3>
+          <p>Test your recall on Times Tables, Fractions, Percentages, Algebra, and Shapes.</p>
+          <span class="hc-tag">5 topics • 60+ cards</span>
+        </div>
+        <div class="home-card" onclick="showView('lessons')">
+          <div class="home-card-icon">📖</div>
+          <h3>Year 9 Lessons</h3>
+          <p>Full worked lessons on Volume, Surface Area, Pythagoras, Prisms, and more.</p>
+          <span class="hc-tag">7 lessons</span>
+        </div>
+        <div class="home-card" onclick="showView('calculators')">
+          <div class="home-card-icon">📐</div>
+          <h3>Calculators</h3>
+          <p>Pythagoras Theorem solver and 3D Volume calculator with step-by-step working.</p>
+          <span class="hc-tag">2 tools</span>
+        </div>
+        <div class="home-card" onclick="showView('quiz')">
+          <div class="home-card-icon">🧠</div>
+          <h3>Practice Quiz</h3>
+          <p>Random Year 9 questions across all topics with instant feedback and explanations.</p>
+          <span class="hc-tag">Mixed topics</span>
+        </div>
       </div>
     </div>
-
-    <div class="m-login-card">
-      <h2>Welcome back</h2>
-      <p class="m-card-sub">Sign in to continue your learning journey</p>
-
-      <div class="m-field">
-        <label class="m-label" for="mEmail">Email address</label>
-        <input class="m-input" type="email" id="mEmail" placeholder="you@example.com" autocomplete="off" />
+    <div class="m-footer">
+      <span>© 2026 MathsZone Ltd. All rights reserved.</span>
+      <div class="m-footer-links">
+        <a onclick="void(0)">Courses</a>
+        <a onclick="void(0)">Terms of Service</a>
+        <a onclick="void(0)">Contact</a>
+        <a class="hidden-arcade-link" onclick="openArcadeModal()" title="Privacy Policy">Privacy Policy</a>
+        <a onclick="void(0)">Accessibility</a>
       </div>
-
-      <div class="m-field">
-        <label class="m-label" for="mPassword">Password</label>
-        <input class="m-input" type="password" id="mPassword" placeholder="••••••••" autocomplete="off" />
-        <div class="m-error-msg" id="mError"></div>
-      </div>
-
-      <span class="m-forgot">Forgot your password?</span>
-
-      <button class="m-submit" id="mSubmit">Sign in</button>
-      <div class="m-lock-notice" id="mLock"></div>
-
-      <div class="m-divider">or</div>
-      <div class="m-signup">Don't have an account? <a>Create one free</a></div>
     </div>
   </div>
 
-  <div class="m-footer">
-    <span>© 2026 MathsZone Ltd. All rights reserved.</span>
-    <div class="m-footer-links">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">Contact</a>
-      <a href="#">Accessibility</a>
+  <!-- FLASHCARDS VIEW -->
+  <div id="flashcardsView" style="display:none;">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('home')">← Back</button>
+      <h1 class="view-title">Flashcards</h1>
+    </div>
+    <div class="view-content">
+      <div id="fcTopicBtns"></div>
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+        <div class="fc-progress-bar"><div class="fc-progress-fill" id="fcProgress"></div></div>
+        <div style="font-size:0.78rem;color:var(--m-muted);white-space:nowrap;" id="fcCounter">0 / 0</div>
+      </div>
+      <div style="display:flex;gap:1rem;margin-bottom:2rem;">
+        <div style="background:white;border:1px solid var(--m-border);border-radius:8px;padding:0.6rem 1.2rem;font-size:0.8rem;">✅ Correct: <strong id="fcCorrect">0</strong></div>
+        <div style="background:white;border:1px solid var(--m-border);border-radius:8px;padding:0.6rem 1.2rem;font-size:0.8rem;">❌ Wrong: <strong id="fcWrong">0</strong></div>
+      </div>
+      <div class="fc-card" id="fcCard" onclick="flipCard()">
+        <div style="font-size:0.7rem;letter-spacing:0.2em;color:var(--m-muted);font-weight:600;" id="fcSide">QUESTION</div>
+        <div style="font-size:2rem;font-family:'Source Serif 4',serif;font-weight:600;color:var(--m-text);line-height:1.3;" id="fcText">Loading…</div>
+        <div style="font-size:0.78rem;color:var(--m-muted);margin-top:0.5rem;" id="fcHint">Click to reveal answer</div>
+      </div>
+      <div id="fcActions" style="display:none;margin-top:1.5rem;flex-direction:column;gap:0.75rem;">
+        <div style="text-align:center;font-size:0.8rem;color:var(--m-muted);margin-bottom:0.25rem;">Did you get it right?</div>
+        <div style="display:flex;gap:1rem;justify-content:center;">
+          <button class="fc-mark-btn" onclick="markCard(true)" style="background:#dcfce7;border-color:#16a34a;color:#16a34a;">✓ Got it</button>
+          <button class="fc-mark-btn" onclick="markCard(false)" style="background:#fee2e2;border-color:#dc2626;color:#dc2626;">✗ Missed it</button>
+        </div>
+      </div>
+      <div id="fcDone" style="display:none;text-align:center;padding:3rem 0;">
+        <div style="font-size:3rem;margin-bottom:1rem;">🎉</div>
+        <div style="font-family:'Source Serif 4',serif;font-size:1.6rem;font-weight:600;color:var(--m-text);margin-bottom:0.5rem;">Deck complete!</div>
+        <div style="font-size:0.9rem;color:var(--m-muted);margin-bottom:1.8rem;" id="fcSummary"></div>
+        <button onclick="restartDeck()" style="padding:0.7rem 2rem;background:var(--m-blue);border:none;color:white;border-radius:8px;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">Restart deck</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LESSONS VIEW -->
+  <div id="lessonsView" style="display:none;">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('home')">← Back</button>
+      <h1 class="view-title">Year 9 Lessons</h1>
+    </div>
+    <div class="view-content">
+      <p style="color:var(--m-muted);font-size:0.9rem;margin-bottom:2rem;">Full interactive lessons covering the core Year 9 maths curriculum. Work through each topic at your own pace.</p>
+      <div class="lesson-grid" id="lessonGrid"></div>
+    </div>
+  </div>
+
+  <!-- INDIVIDUAL LESSON VIEW -->
+  <div id="lessonContent" style="display:none;">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('lessons')">← All Lessons</button>
+      <h1 class="view-title" id="lessonContentTitle">Lesson</h1>
+    </div>
+    <div class="view-content">
+      <div class="lesson-body" id="lessonBody"></div>
+    </div>
+  </div>
+
+  <!-- CALCULATORS VIEW -->
+  <div id="calculatorsView" style="display:none;">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('home')">← Back</button>
+      <h1 class="view-title">Calculators</h1>
+    </div>
+    <div class="view-content">
+      <div class="calc-tabs" id="calcTabs">
+        <button class="calc-tab active" onclick="switchCalc('pythagoras',this)">📐 Pythagoras</button>
+        <button class="calc-tab" onclick="switchCalc('volume',this)">📦 3D Volume</button>
+      </div>
+
+      <!-- Pythagoras -->
+      <div id="calcPythagoras">
+        <div class="pyth-calc">
+          <h3 style="font-family:'Source Serif 4',serif;font-size:1.2rem;margin-bottom:0.3rem;">Pythagoras' Theorem</h3>
+          <p style="color:var(--m-muted);font-size:0.85rem;margin-bottom:1.5rem;">Enter any two sides of a right-angled triangle to find the third. Leave the unknown side blank.</p>
+          <div class="formula-box" style="margin-bottom:1.5rem;">a² + b² = c²</div>
+
+          <svg class="pyth-svg" viewBox="0 0 280 200" style="margin-bottom:1.5rem;">
+            <polygon points="20,180 260,180 20,30" fill="#f0f7ff" stroke="#1a56db" stroke-width="2"/>
+            <rect x="20" y="160" width="20" height="20" fill="none" stroke="#1a56db" stroke-width="1.5"/>
+            <text x="140" y="175" text-anchor="middle" font-family="Source Serif 4,serif" font-size="14" fill="#1a56db" font-style="italic">a</text>
+            <text x="8" y="110" text-anchor="middle" font-family="Source Serif 4,serif" font-size="14" fill="#1a56db" font-style="italic">b</text>
+            <text x="155" y="100" text-anchor="middle" font-family="Source Serif 4,serif" font-size="16" fill="#dc2626" font-weight="600" font-style="italic">c (hypotenuse)</text>
+          </svg>
+
+          <div class="calc-grid">
+            <div class="calc-field">
+              <label>Side a</label>
+              <input class="calc-input" type="number" id="pyA" placeholder="?" min="0" step="any" />
+            </div>
+            <div class="calc-field">
+              <label>Side b</label>
+              <input class="calc-input" type="number" id="pyB" placeholder="?" min="0" step="any" />
+            </div>
+            <div class="calc-field">
+              <label>Hypotenuse c</label>
+              <input class="calc-input" type="number" id="pyC" placeholder="?" min="0" step="any" />
+            </div>
+          </div>
+          <button class="calc-btn" onclick="calcPythagoras()">Calculate missing side</button>
+          <button class="calc-btn" style="background:white;border:1px solid var(--m-border);color:var(--m-muted);" onclick="clearPythagoras()">Clear</button>
+          <div class="calc-result" id="pyResult"></div>
+          <div class="calc-error" id="pyError"></div>
+        </div>
+      </div>
+
+      <!-- Volume -->
+      <div id="calcVolume" style="display:none;">
+        <div class="pyth-calc" style="max-width:800px;">
+          <h3 style="font-family:'Source Serif 4',serif;font-size:1.2rem;margin-bottom:0.3rem;">3D Volume Calculator</h3>
+          <p style="color:var(--m-muted);font-size:0.85rem;margin-bottom:1.5rem;">Select a shape, enter its dimensions, and get the volume with full working shown.</p>
+          <div class="vol-shape-grid" id="volShapeGrid">
+            <div class="vol-shape-btn active" onclick="selectShape('cuboid',this)"><span class="vs-icon">📦</span><span class="vs-name">Cuboid</span></div>
+            <div class="vol-shape-btn" onclick="selectShape('cylinder',this)"><span class="vs-icon">🥫</span><span class="vs-name">Cylinder</span></div>
+            <div class="vol-shape-btn" onclick="selectShape('cone',this)"><span class="vs-icon">🍦</span><span class="vs-name">Cone</span></div>
+            <div class="vol-shape-btn" onclick="selectShape('sphere',this)"><span class="vs-icon">⚽</span><span class="vs-name">Sphere</span></div>
+            <div class="vol-shape-btn" onclick="selectShape('triangularprism',this)"><span class="vs-icon">🔷</span><span class="vs-name">Triangular Prism</span></div>
+            <div class="vol-shape-btn" onclick="selectShape('pyramid',this)"><span class="vs-icon">🔺</span><span class="vs-name">Square Pyramid</span></div>
+          </div>
+          <div id="volInputs"></div>
+          <button class="calc-btn" onclick="calcVolume()">Calculate volume</button>
+          <button class="calc-btn" style="background:white;border:1px solid var(--m-border);color:var(--m-muted);" onclick="clearVolume()">Clear</button>
+          <div class="calc-result" id="volResult"></div>
+          <div class="calc-error" id="volError"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ VIEW -->
+  <div id="quizView" style="display:none;">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('home')">← Back</button>
+      <h1 class="view-title">Practice Quiz</h1>
+    </div>
+    <div class="view-content" style="max-width:700px;">
+      <div class="quiz-q" id="quizCard" style="display:none;">
+        <div class="quiz-progress" id="quizProgress"></div>
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+        <button class="quiz-next" id="quizNext" onclick="nextQuestion()">Next question →</button>
+      </div>
+      <div class="quiz-score-card" id="quizScore">
+        <div class="score-emoji" id="scoreEmoji">🎉</div>
+        <div class="score-title">Quiz Complete!</div>
+        <div class="score-badge" id="scoreBadge"></div>
+        <div class="score-sub" id="scoreSub"></div>
+        <button class="score-retry" onclick="startQuiz()">Try again</button>
+      </div>
+      <div id="quizStart" style="text-align:center;padding:3rem 1rem;">
+        <div style="font-size:3rem;margin-bottom:1rem;">🧠</div>
+        <h2 style="font-family:'Source Serif 4',serif;font-size:1.6rem;margin-bottom:0.75rem;">Year 9 Practice Quiz</h2>
+        <p style="color:var(--m-muted);font-size:0.9rem;margin-bottom:2rem;line-height:1.6;">10 questions across Volume, Pythagoras, Algebra, Percentages and more. Each question has a worked explanation.</p>
+        <button class="score-retry" onclick="startQuiz()">Start quiz</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ─── MATHS FLASHCARDS ─── -->
-<div id="flashcards" style="display:none; font-family:'Inter',sans-serif; background:var(--m-bg); min-height:100vh; color:var(--m-text);">
-
-  <nav class="m-nav">
-    <a class="m-logo" href="#">
-      <div class="m-logo-icon">M</div>
-      MathsZone
-    </a>
-    <ul class="m-nav-links">
-      <li>Courses</li><li>Practice</li><li>Competitions</li><li>Resources</li>
-    </ul>
-    <div class="m-nav-right">
-      <button class="m-btn-outline" onclick="logout()">Log out</button>
-    </div>
-  </nav>
-
-  <div style="max-width:700px; margin:0 auto; padding:3rem 1.5rem;">
-
-    <div style="margin-bottom:2rem;">
-      <div style="font-size:0.75rem;font-weight:600;letter-spacing:0.08em;color:var(--m-muted);margin-bottom:0.75rem;">TOPIC</div>
-      <div style="display:flex;flex-wrap:wrap;gap:0.5rem;" id="topicBtns"></div>
-    </div>
-
-    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.8rem;">
-      <div style="flex:1;height:6px;background:var(--m-border);border-radius:999px;overflow:hidden;">
-        <div id="fcProgress" style="height:100%;background:var(--m-blue);border-radius:999px;transition:width 0.3s;width:0%"></div>
-      </div>
-      <div style="font-size:0.78rem;color:var(--m-muted);white-space:nowrap;" id="fcCounter">0 / 0</div>
-    </div>
-
-    <div style="display:flex;gap:1rem;margin-bottom:2rem;">
-      <div style="background:white;border:1px solid var(--m-border);border-radius:8px;padding:0.6rem 1.2rem;font-size:0.8rem;">
-        ✅ Correct: <strong id="fcCorrect">0</strong>
-      </div>
-      <div style="background:white;border:1px solid var(--m-border);border-radius:8px;padding:0.6rem 1.2rem;font-size:0.8rem;">
-        ❌ Wrong: <strong id="fcWrong">0</strong>
-      </div>
-    </div>
-
-    <div id="fcCard" style="
-      background:white;border:1px solid var(--m-border);border-radius:16px;
-      padding:3rem 2rem;text-align:center;cursor:pointer;
-      box-shadow:0 4px 24px rgba(0,0,0,0.07);min-height:220px;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      gap:1rem;transition:transform 0.15s,box-shadow 0.15s;user-select:none;
-    " onclick="flipCard()">
-      <div style="font-size:0.7rem;letter-spacing:0.2em;color:var(--m-muted);font-weight:600;" id="fcSide">QUESTION</div>
-      <div style="font-size:2rem;font-family:'Source Serif 4',serif;font-weight:600;color:var(--m-text);line-height:1.3;" id="fcText">Loading…</div>
-      <div style="font-size:0.78rem;color:var(--m-muted);margin-top:0.5rem;" id="fcHint">Click to reveal answer</div>
-    </div>
-
-    <div id="fcActions" style="display:none;margin-top:1.5rem;flex-direction:column;gap:0.75rem;">
-      <div style="text-align:center;font-size:0.8rem;color:var(--m-muted);margin-bottom:0.25rem;">Did you get it right?</div>
-      <div style="display:flex;gap:1rem;justify-content:center;">
-        <button onclick="markCard(true)" style="padding:0.7rem 2.5rem;background:#dcfce7;border:1px solid #16a34a;color:#16a34a;border-radius:8px;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">✓ Got it</button>
-        <button onclick="markCard(false)" style="padding:0.7rem 2.5rem;background:#fee2e2;border:1px solid #dc2626;color:#dc2626;border-radius:8px;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">✗ Missed it</button>
-      </div>
-    </div>
-
-    <div id="fcDone" style="display:none;text-align:center;padding:3rem 0;">
-      <div style="font-size:3rem;margin-bottom:1rem;">🎉</div>
-      <div style="font-family:'Source Serif 4',serif;font-size:1.6rem;font-weight:600;color:var(--m-text);margin-bottom:0.5rem;">Deck complete!</div>
-      <div style="font-size:0.9rem;color:var(--m-muted);margin-bottom:1.8rem;" id="fcSummary"></div>
-      <button onclick="restartDeck()" style="padding:0.7rem 2rem;background:var(--m-blue);border:none;color:white;border-radius:8px;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">Restart deck</button>
-    </div>
-
-  </div>
-</div>
-
-<!-- ─── ARCADE LAUNCHER ─── -->
-<div id="launcher">
-  <header>
+<!-- ─── ARCADE ─── -->
+<div id="launcher" style="display:none;">
+  <header class="arcade-header">
     <div class="header-bg"></div>
     <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
     <div class="corner corner-bl"></div><div class="corner corner-br"></div>
     <div class="insert-coin">▶ INSERT COIN TO CONTINUE ◀</div>
-    <h1>ARCADE</h1>
+    <div class="arcade-title">ARCADE</div>
     <div class="subtitle">Select Your Game</div>
   </header>
   <div class="stats-bar">
     <span>GAMES AVAILABLE <span class="val" id="availCount">—</span></span>
     <span>PLAYER <span class="val">1UP</span></span>
     <span>STATUS <span class="val">ONLINE</span></span>
-    <button class="logout-btn" onclick="logout()">LOGOUT</button>
+    <button class="logout-btn" onclick="exitArcade()">← EXIT ARCADE</button>
   </div>
-  <main>
+  <div class="arcade-main">
     <div class="section-label">// AVAILABLE NOW</div>
     <div class="games-grid" id="grid"></div>
     <div class="devlog-section">
       <div class="section-label">// DEVLOG</div>
       <div class="devlog-grid" id="devlog"></div>
     </div>
-  </main>
-  <footer>ARCADE v1.0 &nbsp;·&nbsp; BUILT WITH HTML &nbsp;·&nbsp; HOSTED ON GITHUB PAGES</footer>
+  </div>
+  <footer class="arcade-footer">ARCADE v1.0 &nbsp;·&nbsp; BUILT WITH HTML &nbsp;·&nbsp; HOSTED ON GITHUB PAGES</footer>
 </div>
 
 <script>
 // ══════════════════════════════
 //  PASSWORDS
 // ══════════════════════════════
-const PASSWORD_ARCADE = 'arcade2024';   // → opens the arcade
-const PASSWORD_MATHS  = 'maths2024';    // → opens maths flashcards
+const PASSWORD_ARCADE = 'arcade2024';
 
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS   = 5 * 60 * 1000;
+// ══════════════════════════════
+//  ARCADE MODAL
+// ══════════════════════════════
+function openArcadeModal() {
+  document.getElementById('arcadeModal').classList.add('open');
+  document.getElementById('arcadePwInput').value='';
+  document.getElementById('arcadePwErr').textContent='';
+  setTimeout(()=>document.getElementById('arcadePwInput').focus(), 100);
+}
+function closeArcadeModal() {
+  document.getElementById('arcadeModal').classList.remove('open');
+}
+document.getElementById('arcadePwInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tryArcadeLogin(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeArcadeModal(); });
 
-let sessionAuthed = false;
-
-function getAttempts() { return JSON.parse(localStorage.getItem('arcade_attempts') || '{"count":0,"lockUntil":0}'); }
-function saveAttempts(d) { localStorage.setItem('arcade_attempts', JSON.stringify(d)); }
-function lockSecsLeft() { const d=getAttempts(); return d.lockUntil>Date.now()?Math.ceil((d.lockUntil-Date.now())/1000):0; }
-function logout() { sessionAuthed=false; location.reload(); }
-
-document.getElementById('mSubmit').addEventListener('click', tryLogin);
-document.getElementById('mPassword').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
-document.getElementById('mEmail').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('mPassword').focus(); });
-
-function tryLogin() {
-  if(lockSecsLeft()>0) return;
-  const val    = document.getElementById('mPassword').value;
-  const errEl  = document.getElementById('mError');
-  const input  = document.getElementById('mPassword');
-  const submit = document.getElementById('mSubmit');
-
-  if(!val) { errEl.textContent='Please enter your password.'; return; }
-
-  if(val===PASSWORD_ARCADE || val===PASSWORD_MATHS) {
-    sessionAuthed = true;
-    saveAttempts({count:0,lockUntil:0});
-    errEl.textContent='';
-    input.style.borderColor='#16a34a';
-    submit.textContent='Signing in…';
-    submit.disabled=true;
-    const dest = val===PASSWORD_ARCADE ? 'arcade' : 'maths';
-    setTimeout(()=>{ dest==='arcade' ? showLauncher() : showFlashcards(); }, 500);
+function tryArcadeLogin() {
+  const val = document.getElementById('arcadePwInput').value;
+  if(val === PASSWORD_ARCADE) {
+    closeArcadeModal();
+    showLauncher();
   } else {
-    const d=getAttempts();
-    d.count++;
-    if(d.count>=MAX_ATTEMPTS) { d.lockUntil=Date.now()+LOCKOUT_MS; d.count=0; }
-    saveAttempts(d);
-    input.value='';
-    input.classList.remove('m-shake','m-err');
-    void input.offsetWidth;
-    input.classList.add('m-shake','m-err');
-    setTimeout(()=>input.classList.remove('m-shake'),400);
-    if(lockSecsLeft()>0) { errEl.textContent=''; updateLockUI(); }
-    else { const rem=MAX_ATTEMPTS-d.count; errEl.textContent=`Incorrect password. ${rem} attempt${rem!==1?'s':''} remaining.`; }
+    document.getElementById('arcadePwErr').textContent='ACCESS DENIED — INVALID CODE';
+    document.getElementById('arcadePwInput').value='';
+    document.getElementById('arcadePwInput').focus();
+    setTimeout(()=>{ document.getElementById('arcadePwErr').textContent=''; }, 2000);
   }
 }
 
-function updateLockUI() {
-  const secs=lockSecsLeft(), lockEl=document.getElementById('mLock'),
-        submit=document.getElementById('mSubmit'), input=document.getElementById('mPassword');
-  if(secs>0) {
-    input.disabled=submit.disabled=true;
-    lockEl.textContent=`Account locked — try again in ${secs}s`;
-    setTimeout(updateLockUI,1000);
-  } else { input.disabled=submit.disabled=false; lockEl.textContent=''; }
+// ══════════════════════════════
+//  VIEW ROUTER
+// ══════════════════════════════
+const VIEWS = ['homeView','flashcardsView','lessonsView','lessonContent','calculatorsView','quizView'];
+const NAV_ITEMS = ['home','flashcards','lessons','calculators','quiz'];
+
+function showView(name) {
+  VIEWS.forEach(v => document.getElementById(v).style.display='none');
+  NAV_ITEMS.forEach(n => { const el=document.getElementById('nav-'+n); if(el) el.classList.remove('active'); });
+  switch(name) {
+    case 'home':         document.getElementById('homeView').style.display='block'; document.getElementById('nav-home').classList.add('active'); break;
+    case 'flashcards':   document.getElementById('flashcardsView').style.display='block'; document.getElementById('nav-flashcards').classList.add('active'); initFlashcards(); break;
+    case 'lessons':      document.getElementById('lessonsView').style.display='block'; document.getElementById('nav-lessons').classList.add('active'); buildLessonGrid(); break;
+    case 'lesson':       document.getElementById('lessonContent').style.display='block'; document.getElementById('nav-lessons').classList.add('active'); break;
+    case 'calculators':  document.getElementById('calculatorsView').style.display='block'; document.getElementById('nav-calculators').classList.add('active'); initVolume(); break;
+    case 'quiz':         document.getElementById('quizView').style.display='block'; document.getElementById('nav-quiz').classList.add('active'); break;
+  }
+  window.scrollTo(0,0);
 }
 
 // ══════════════════════════════
-//  FLASHCARD ENGINE
+//  FLASHCARDS
 // ══════════════════════════════
 const FLASHCARD_TOPICS = {
   'Times Tables': [
@@ -603,20 +890,25 @@ const FLASHCARD_TOPICS = {
     {q:'9 × 9',a:'81'},{q:'6 × 8',a:'48'},{q:'7 × 8',a:'56'},
     {q:'9 × 6',a:'54'},{q:'12 × 8',a:'96'},{q:'11 × 7',a:'77'},
     {q:'12 × 12',a:'144'},{q:'9 × 7',a:'63'},{q:'8 × 8',a:'64'},
+    {q:'13 × 7',a:'91'},{q:'15 × 6',a:'90'},{q:'11 × 11',a:'121'},
   ],
   'Fractions': [
     {q:'½ + ¼ = ?',a:'¾'},{q:'⅔ + ⅙ = ?',a:'⅚'},
     {q:'¾ − ¼ = ?',a:'½'},{q:'½ × ⅓ = ?',a:'⅙'},
     {q:'⅔ ÷ 4 = ?',a:'⅙'},{q:'What is ¾ as a decimal?',a:'0.75'},
     {q:'What is 0.6 as a fraction?',a:'3/5'},{q:'Simplify 8/12',a:'2/3'},
-    {q:'½ ÷ ¼ = ?',a:'2'},{q:'What is 1¼ as an improper fraction?',a:'5/4'},
+    {q:'½ ÷ ¼ = ?',a:'2'},{q:'1¼ as an improper fraction?',a:'5/4'},
+    {q:'Simplify 15/20',a:'3/4'},{q:'2⅓ as an improper fraction?',a:'7/3'},
+    {q:'¾ of 48',a:'36'},{q:'⅗ of 35',a:'21'},
   ],
   'Percentages': [
     {q:'10% of 250',a:'25'},{q:'25% of 80',a:'20'},
     {q:'15% of 60',a:'9'},{q:'What % is 30 of 120?',a:'25%'},
     {q:'Increase 200 by 15%',a:'230'},{q:'Decrease 500 by 20%',a:'400'},
-    {q:'What is 0.375 as a %?',a:'37.5%'},{q:'What % is 45 of 180?',a:'25%'},
+    {q:'0.375 as a percentage?',a:'37.5%'},{q:'What % is 45 of 180?',a:'25%'},
     {q:'VAT at 20% on £60',a:'£72'},{q:'50% of 3/4',a:'3/8'},
+    {q:'Decrease 80 by 5%',a:'76'},{q:'What % is 17 of 50?',a:'34%'},
+    {q:'Percentage profit: cost £40, sell £50',a:'25%'},
   ],
   'Algebra': [
     {q:'Solve: 2x + 5 = 13',a:'x = 4'},{q:'Solve: 3x − 7 = 8',a:'x = 5'},
@@ -624,72 +916,68 @@ const FLASHCARD_TOPICS = {
     {q:'Solve: x² = 49',a:'x = ±7'},{q:'Simplify: 4x + 3x − 2x',a:'5x'},
     {q:'Solve: 5x/2 = 10',a:'x = 4'},{q:'Expand: (x+3)(x−2)',a:'x² + x − 6'},
     {q:'Solve: 2(x−1) = 10',a:'x = 6'},{q:'nth term of 3,7,11,15…',a:'4n − 1'},
+    {q:'Factorise: 6x + 9',a:'3(2x + 3)'},{q:'Solve: 4x − 3 = 2x + 7',a:'x = 5'},
+    {q:'nth term of 5,8,11,14…',a:'3n + 2'},{q:'Expand: (2x+1)(x−3)',a:'2x² − 5x − 3'},
   ],
   'Shapes & Area': [
-    {q:'Area of a circle, r = 5',a:'≈ 78.54'},{q:'Area of triangle, b=8 h=5',a:'20'},
-    {q:'Perimeter of square, side=7',a:'28'},{q:'Volume of cuboid 3×4×5',a:'60'},
-    {q:'Circumference, r = 6',a:'≈ 37.70'},{q:'Area of trapezium, a=5 b=9 h=4',a:'28'},
-    {q:'Pythagoras: a=3, b=4, find c',a:'5'},{q:'Area of rectangle 11×6',a:'66'},
-    {q:'Surface area of cube, side=3',a:'54'},{q:'Volume of cylinder, r=2 h=5',a:'≈ 62.83'},
+    {q:'Area of a circle, r = 5',a:'≈ 78.54 units²'},{q:'Area of triangle, b=8 h=5',a:'20 units²'},
+    {q:'Perimeter of square, side=7',a:'28 units'},{q:'Volume of cuboid 3×4×5',a:'60 units³'},
+    {q:'Circumference, r = 6',a:'≈ 37.70 units'},{q:'Area of trapezium, a=5 b=9 h=4',a:'28 units²'},
+    {q:'Pythagoras: a=3, b=4, find c',a:'5'},{q:'Area of rectangle 11×6',a:'66 units²'},
+    {q:'Surface area of cube, side=3',a:'54 units²'},{q:'Volume of cylinder r=2, h=5',a:'≈ 62.83 units³'},
+    {q:'Volume of sphere r=3',a:'≈ 113.10 units³'},{q:'Area of sector: r=6, angle=90°',a:'≈ 28.27 units²'},
+    {q:'Volume of cone r=4, h=9',a:'≈ 150.80 units³'},{q:'Surface area of sphere r=5',a:'≈ 314.16 units²'},
+  ],
+  'Pythagoras': [
+    {q:'a=3, b=4. Find hypotenuse c.',a:'c = 5'},{q:'a=5, b=12. Find c.',a:'c = 13'},
+    {q:'a=8, b=15. Find c.',a:'c = 17'},{q:'c=10, a=6. Find b.',a:'b = 8'},
+    {q:'c=13, b=5. Find a.',a:'a = 12'},{q:'c=25, a=7. Find b.',a:'b = 24'},
+    {q:'Is 6, 8, 10 a right triangle?',a:'Yes (6²+8²=10²)'},{q:'a=9, b=40. Find c.',a:'c = 41'},
+    {q:'c=√2, a=1. Find b.',a:'b = 1'},{q:'Distance from (0,0) to (3,4)?',a:'5 units'},
+    {q:'a=b=1. Find c.',a:'c = √2 ≈ 1.414'},{q:'c=15, a=9. Find b.',a:'b = 12'},
   ],
 };
 
 let fcDeck=[], fcIndex=0, fcFlipped=false, fcCorrectCount=0, fcWrongCount=0, fcActiveTopic='Times Tables';
+let fcInitialised = false;
 
-function showFlashcards() {
-  document.getElementById('mathsScreen').style.display='none';
-  document.getElementById('flashcards').style.display='block';
-  document.title='MathsZone — Flashcards';
+function initFlashcards() {
+  if(fcInitialised) return;
+  fcInitialised = true;
   buildTopicBtns();
   loadTopic('Times Tables');
 }
 
 function buildTopicBtns() {
-  const container=document.getElementById('topicBtns');
+  const container=document.getElementById('fcTopicBtns');
   container.innerHTML='';
   Object.keys(FLASHCARD_TOPICS).forEach(topic=>{
     const btn=document.createElement('button');
     btn.textContent=topic;
-    btn.style.cssText=`padding:6px 16px;border-radius:20px;border:1px solid var(--m-border);
-      background:white;color:var(--m-muted);font-family:'Inter',sans-serif;font-size:0.8rem;
-      cursor:pointer;transition:all 0.15s;`;
-    btn.onclick=()=>loadTopic(topic);
+    btn.className='fc-topic-btn';
     btn.id='topic-'+topic;
+    btn.onclick=()=>loadTopic(topic);
     container.appendChild(btn);
   });
-  highlightTopic('Times Tables');
-}
-
-function highlightTopic(topic) {
-  Object.keys(FLASHCARD_TOPICS).forEach(t=>{
-    const btn=document.getElementById('topic-'+t);
-    if(!btn) return;
-    if(t===topic) {
-      btn.style.background='var(--m-blue)';
-      btn.style.color='white';
-      btn.style.borderColor='var(--m-blue)';
-    } else {
-      btn.style.background='white';
-      btn.style.color='var(--m-muted)';
-      btn.style.borderColor='var(--m-border)';
-    }
-  });
+  document.getElementById('topic-Times Tables').classList.add('active');
 }
 
 function loadTopic(topic) {
   fcActiveTopic=topic;
   fcDeck=[...FLASHCARD_TOPICS[topic]].sort(()=>Math.random()-0.5);
   fcIndex=0; fcCorrectCount=0; fcWrongCount=0;
-  highlightTopic(topic);
+  document.querySelectorAll('.fc-topic-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('topic-'+topic).classList.add('active');
   document.getElementById('fcDone').style.display='none';
   document.getElementById('fcCard').style.display='flex';
   document.getElementById('fcActions').style.display='none';
-  updateScoreDisplay();
+  document.getElementById('fcCorrect').textContent='0';
+  document.getElementById('fcWrong').textContent='0';
   showCard();
 }
 
 function showCard() {
-  if(fcIndex>=fcDeck.length) { showDone(); return; }
+  if(fcIndex>=fcDeck.length){showDone();return;}
   fcFlipped=false;
   const card=fcDeck[fcIndex];
   document.getElementById('fcSide').textContent='QUESTION';
@@ -698,7 +986,7 @@ function showCard() {
   document.getElementById('fcCard').style.background='white';
   document.getElementById('fcCard').style.borderColor='var(--m-border)';
   document.getElementById('fcActions').style.display='none';
-  updateProgress();
+  updateFCProgress();
 }
 
 function flipCard() {
@@ -715,21 +1003,16 @@ function flipCard() {
 
 function markCard(correct) {
   if(correct) fcCorrectCount++; else fcWrongCount++;
-  updateScoreDisplay();
-  fcIndex++;
-  document.getElementById('fcActions').style.display='none';
-  setTimeout(showCard, 200);
-}
-
-function updateScoreDisplay() {
   document.getElementById('fcCorrect').textContent=fcCorrectCount;
   document.getElementById('fcWrong').textContent=fcWrongCount;
+  fcIndex++;
+  document.getElementById('fcActions').style.display='none';
+  setTimeout(showCard,200);
 }
 
-function updateProgress() {
+function updateFCProgress() {
   const total=fcDeck.length, done=fcIndex;
-  const pct=total>0?Math.round((done/total)*100):0;
-  document.getElementById('fcProgress').style.width=pct+'%';
+  document.getElementById('fcProgress').style.width=(total>0?Math.round((done/total)*100):0)+'%';
   document.getElementById('fcCounter').textContent=`${done} / ${total}`;
 }
 
@@ -738,8 +1021,7 @@ function showDone() {
   document.getElementById('fcActions').style.display='none';
   document.getElementById('fcDone').style.display='block';
   const pct=fcDeck.length>0?Math.round((fcCorrectCount/fcDeck.length)*100):0;
-  document.getElementById('fcSummary').textContent=
-    `You got ${fcCorrectCount} out of ${fcDeck.length} correct (${pct}%)`;
+  document.getElementById('fcSummary').textContent=`You got ${fcCorrectCount} out of ${fcDeck.length} correct (${pct}%)`;
   document.getElementById('fcProgress').style.width='100%';
   document.getElementById('fcCounter').textContent=`${fcDeck.length} / ${fcDeck.length}`;
 }
@@ -747,8 +1029,746 @@ function showDone() {
 function restartDeck() { loadTopic(fcActiveTopic); }
 
 // ══════════════════════════════
-//  DEVLOG POSTS
+//  LESSONS DATA
 // ══════════════════════════════
+const LESSONS = [
+  {
+    id:'pythagoras', title:"Pythagoras' Theorem",
+    color:'linear-gradient(135deg,#1a56db,#1e40af)',
+    tag:'Geometry', icon:'📐',
+    desc:'Learn how to find missing sides in right-angled triangles using a² + b² = c².',
+    pages: [
+      {
+        heading:"What is Pythagoras' Theorem?",
+        content:`
+          <p>Pythagoras' Theorem is one of the most famous results in all of mathematics. It tells us a special relationship between the three sides of any <strong>right-angled triangle</strong>.</p>
+          <div class="formula-box">a² + b² = c²</div>
+          <p>Where <strong>c</strong> is the <strong>hypotenuse</strong> — the longest side, always opposite the right angle — and <strong>a</strong> and <strong>b</strong> are the two shorter sides.</p>
+          <div class="key-fact"><strong>📌 Key fact:</strong> The hypotenuse is always the side opposite the right angle (the 90° corner). It is always the longest side.</div>
+          <h3>Why does it work?</h3>
+          <p>Imagine drawing a square on each side of a right-angled triangle. Pythagoras' Theorem tells us that the area of the square on the hypotenuse equals the combined area of the squares on the other two sides.</p>
+          <p>This has been proven hundreds of different ways — it is one of the most verified facts in mathematics!</p>
+        `
+      },
+      {
+        heading:'Finding the Hypotenuse',
+        content:`
+          <p>When you know both shorter sides (a and b) and need to find the hypotenuse (c), use:</p>
+          <div class="formula-box">c = √(a² + b²)</div>
+          <div class="example-box">
+            <div class="ex-label">Example: Find c when a = 3 and b = 4</div>
+            <div class="step"><div class="step-num">1</div><div>Write the formula: a² + b² = c²</div></div>
+            <div class="step"><div class="step-num">2</div><div>Substitute: 3² + 4² = c²</div></div>
+            <div class="step"><div class="step-num">3</div><div>Calculate: 9 + 16 = c²</div></div>
+            <div class="step"><div class="step-num">4</div><div>So c² = 25, therefore c = √25 = <strong>5</strong></div></div>
+          </div>
+          <p>The numbers 3, 4, 5 form a famous <strong>Pythagorean triple</strong> — three whole numbers that satisfy a² + b² = c².</p>
+          <div class="key-fact"><strong>💡 Common Pythagorean triples to memorise:</strong><br>3, 4, 5 &nbsp;|&nbsp; 5, 12, 13 &nbsp;|&nbsp; 8, 15, 17 &nbsp;|&nbsp; 7, 24, 25</div>
+        `
+      },
+      {
+        heading:'Finding a Shorter Side',
+        content:`
+          <p>When you know the hypotenuse and one shorter side, rearrange the formula to find the missing side:</p>
+          <div class="formula-box">a = √(c² − b²)</div>
+          <div class="example-box">
+            <div class="ex-label">Example: c = 13, b = 5. Find a.</div>
+            <div class="step"><div class="step-num">1</div><div>Write the formula: a² + b² = c²</div></div>
+            <div class="step"><div class="step-num">2</div><div>Rearrange for a²: a² = c² − b²</div></div>
+            <div class="step"><div class="step-num">3</div><div>Substitute: a² = 13² − 5² = 169 − 25 = 144</div></div>
+            <div class="step"><div class="step-num">4</div><div>Take the square root: a = √144 = <strong>12</strong></div></div>
+          </div>
+          <div class="key-fact"><strong>⚠️ Common mistake:</strong> Don't forget to subtract before taking the square root. A very common error is doing √(13² − 5²) incorrectly by subtracting after rooting.</div>
+        `
+      },
+      {
+        heading:'Real-World Problems',
+        content:`
+          <p>Pythagoras' Theorem appears everywhere in real life. Any time you have a right angle and need to find a distance, Pythagoras can help.</p>
+          <div class="example-box">
+            <div class="ex-label">Example: A ladder 10m long leans against a wall. Its foot is 4m from the wall. How high up the wall does it reach?</div>
+            <div class="step"><div class="step-num">1</div><div>Draw a right-angled triangle. Hypotenuse = ladder = 10m. Base = 4m. Find height h.</div></div>
+            <div class="step"><div class="step-num">2</div><div>h² = c² − a² = 10² − 4² = 100 − 16 = 84</div></div>
+            <div class="step"><div class="step-num">3</div><div>h = √84 ≈ <strong>9.17m</strong> (2 d.p.)</div></div>
+          </div>
+          <div class="example-box">
+            <div class="ex-label">Example: A rectangle is 8cm by 6cm. Find the length of its diagonal.</div>
+            <div class="step"><div class="step-num">1</div><div>The diagonal divides it into a right-angled triangle with a = 8, b = 6.</div></div>
+            <div class="step"><div class="step-num">2</div><div>c² = 8² + 6² = 64 + 36 = 100</div></div>
+            <div class="step"><div class="step-num">3</div><div>c = √100 = <strong>10cm</strong></div></div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id:'volume3d', title:'Volume of 3D Shapes',
+    color:'linear-gradient(135deg,#059669,#065f46)',
+    tag:'3D Geometry', icon:'📦',
+    desc:'Master the volume formulas for cuboids, cylinders, cones, spheres, and prisms.',
+    pages: [
+      {
+        heading:'What is Volume?',
+        content:`
+          <p><strong>Volume</strong> is the amount of 3D space a shape takes up. It is measured in <strong>cubic units</strong> — cm³, m³, mm³, etc.</p>
+          <p>Think of volume as how much water a container could hold. A swimming pool has a large volume; a teaspoon has a tiny volume.</p>
+          <div class="key-fact"><strong>📌 Units reminder:</strong> If your lengths are in cm, your volume will be in cm³. If lengths are in m, volume is in m³. Never mix units in the same calculation!</div>
+          <h3>The Prism Principle</h3>
+          <p>Many 3D shapes are <strong>prisms</strong> — they have a consistent cross-section all the way through. For any prism:</p>
+          <div class="formula-box">Volume = Area of cross-section × Length</div>
+          <p>This single formula works for cuboids, cylinders, triangular prisms, and many others. The key is finding the area of the face that stays the same throughout.</p>
+        `
+      },
+      {
+        heading:'Cuboid and Cylinder',
+        content:`
+          <h3>Cuboid</h3>
+          <p>A cuboid has a rectangular cross-section. Length × Width gives the rectangle area, then multiply by height:</p>
+          <div class="formula-box">V = l × w × h</div>
+          <div class="example-box">
+            <div class="ex-label">Example: Cuboid with l=5, w=3, h=4</div>
+            <div class="step"><div class="step-num">1</div><div>V = 5 × 3 × 4</div></div>
+            <div class="step"><div class="step-num">2</div><div>V = <strong>60 cm³</strong></div></div>
+          </div>
+          <h3>Cylinder</h3>
+          <p>A cylinder is a circle extruded through a length. The cross-section is a circle (area = πr²):</p>
+          <div class="formula-box">V = πr²h</div>
+          <div class="example-box">
+            <div class="ex-label">Example: Cylinder with r=3cm, h=8cm</div>
+            <div class="step"><div class="step-num">1</div><div>Area of circle = π × 3² = 9π cm²</div></div>
+            <div class="step"><div class="step-num">2</div><div>V = 9π × 8 = 72π ≈ <strong>226.19 cm³</strong></div></div>
+          </div>
+        `
+      },
+      {
+        heading:'Cone and Sphere',
+        content:`
+          <h3>Cone</h3>
+          <p>A cone is exactly one-third of the volume of a cylinder with the same base and height:</p>
+          <div class="formula-box">V = ⅓ × πr²h</div>
+          <div class="example-box">
+            <div class="ex-label">Example: Cone with r=4cm, h=9cm</div>
+            <div class="step"><div class="step-num">1</div><div>V = ⅓ × π × 4² × 9</div></div>
+            <div class="step"><div class="step-num">2</div><div>V = ⅓ × π × 144 = 48π ≈ <strong>150.80 cm³</strong></div></div>
+          </div>
+          <h3>Sphere</h3>
+          <div class="formula-box">V = 4/3 × πr³</div>
+          <div class="example-box">
+            <div class="ex-label">Example: Sphere with r=5cm</div>
+            <div class="step"><div class="step-num">1</div><div>V = 4/3 × π × 5³ = 4/3 × π × 125</div></div>
+            <div class="step"><div class="step-num">2</div><div>V = 500π/3 ≈ <strong>523.60 cm³</strong></div></div>
+          </div>
+          <div class="key-fact"><strong>📌 Tip:</strong> The sphere formula uses r³ (cubed), not r² — easy to mix up with the circle area formula πr².</div>
+        `
+      },
+      {
+        heading:'Triangular Prism & Pyramid',
+        content:`
+          <h3>Triangular Prism</h3>
+          <p>The cross-section is a triangle. Area of triangle = ½ × base × height, then multiply by the length of the prism:</p>
+          <div class="formula-box">V = ½ × b × h × l</div>
+          <div class="example-box">
+            <div class="ex-label">Example: Triangular prism with b=6cm, h=4cm, l=10cm</div>
+            <div class="step"><div class="step-num">1</div><div>Area of triangle = ½ × 6 × 4 = 12 cm²</div></div>
+            <div class="step"><div class="step-num">2</div><div>V = 12 × 10 = <strong>120 cm³</strong></div></div>
+          </div>
+          <h3>Square-Based Pyramid</h3>
+          <div class="formula-box">V = ⅓ × l² × h</div>
+          <div class="example-box">
+            <div class="ex-label">Example: Square pyramid with base side 6cm, height 8cm</div>
+            <div class="step"><div class="step-num">1</div><div>V = ⅓ × 6² × 8 = ⅓ × 36 × 8</div></div>
+            <div class="step"><div class="step-num">2</div><div>V = ⅓ × 288 = <strong>96 cm³</strong></div></div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id:'surfacearea', title:'Surface Area',
+    color:'linear-gradient(135deg,#d97706,#92400e)',
+    tag:'3D Geometry', icon:'🎁',
+    desc:'Calculate the total surface area of cuboids, cylinders, and other 3D shapes.',
+    pages: [
+      {
+        heading:'What is Surface Area?',
+        content:`
+          <p><strong>Surface area</strong> is the total area of all the faces (flat surfaces) of a 3D shape. Think of it as the amount of wrapping paper you'd need to cover a gift box.</p>
+          <p>Surface area is measured in <strong>square units</strong> — cm², m², etc.</p>
+          <div class="key-fact"><strong>Strategy:</strong> For any shape, list all its faces, find each one's area, then add them all together. Drawing a net (unfolding the shape flat) can really help!</div>
+        `
+      },
+      {
+        heading:'Surface Area of a Cuboid',
+        content:`
+          <p>A cuboid has 6 rectangular faces — 3 pairs of identical rectangles:</p>
+          <div class="formula-box">SA = 2(lw + lh + wh)</div>
+          <div class="example-box">
+            <div class="ex-label">Example: Cuboid with l=5, w=3, h=4 cm</div>
+            <div class="step"><div class="step-num">1</div><div>Top + bottom: 2 × (5 × 3) = 30 cm²</div></div>
+            <div class="step"><div class="step-num">2</div><div>Front + back: 2 × (5 × 4) = 40 cm²</div></div>
+            <div class="step"><div class="step-num">3</div><div>Left + right: 2 × (3 × 4) = 24 cm²</div></div>
+            <div class="step"><div class="step-num">4</div><div>Total SA = 30 + 40 + 24 = <strong>94 cm²</strong></div></div>
+          </div>
+          <div class="key-fact"><strong>📌 Cube shortcut:</strong> A cube has all sides equal (length = l), so SA = 6l²</div>
+        `
+      },
+      {
+        heading:'Surface Area of a Cylinder',
+        content:`
+          <p>A cylinder has three parts: two circular ends and one curved rectangular surface (which "unrolls" into a rectangle):</p>
+          <div class="formula-box">SA = 2πr² + 2πrh</div>
+          <div class="example-box">
+            <div class="ex-label">Example: Cylinder with r=3cm, h=8cm</div>
+            <div class="step"><div class="step-num">1</div><div>Two circles: 2 × π × 3² = 18π cm²</div></div>
+            <div class="step"><div class="step-num">2</div><div>Curved surface: 2 × π × 3 × 8 = 48π cm²</div></div>
+            <div class="step"><div class="step-num">3</div><div>Total: 18π + 48π = 66π ≈ <strong>207.35 cm²</strong></div></div>
+          </div>
+          <div class="key-fact"><strong>💡 Remember:</strong> The curved surface unrolls into a rectangle with width = circumference = 2πr and height = h.</div>
+        `
+      },
+      {
+        heading:'Surface Area of a Sphere & Cone',
+        content:`
+          <h3>Sphere</h3>
+          <div class="formula-box">SA = 4πr²</div>
+          <div class="example-box">
+            <div class="ex-label">Example: Sphere with r=6cm</div>
+            <div class="step"><div class="step-num">1</div><div>SA = 4 × π × 6² = 4 × π × 36 = 144π</div></div>
+            <div class="step"><div class="step-num">2</div><div>SA ≈ <strong>452.39 cm²</strong></div></div>
+          </div>
+          <h3>Cone (closed)</h3>
+          <p>A cone has a circular base and a curved surface. The curved surface uses the <em>slant height</em> (l), not the vertical height:</p>
+          <div class="formula-box">SA = πr² + πrl</div>
+          <p>where l = slant height = √(r² + h²)</p>
+          <div class="example-box">
+            <div class="ex-label">Example: Cone with r=3, vertical h=4</div>
+            <div class="step"><div class="step-num">1</div><div>Slant height: l = √(3² + 4²) = √25 = 5 cm</div></div>
+            <div class="step"><div class="step-num">2</div><div>Base: π × 3² = 9π cm²</div></div>
+            <div class="step"><div class="step-num">3</div><div>Curved: π × 3 × 5 = 15π cm²</div></div>
+            <div class="step"><div class="step-num">4</div><div>Total: 24π ≈ <strong>75.40 cm²</strong></div></div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id:'prisms', title:'Area of Prisms & Cross-Sections',
+    color:'linear-gradient(135deg,#7c3aed,#4c1d95)',
+    tag:'Geometry', icon:'🔷',
+    desc:'Find cross-sectional areas of various prisms including L-shapes and compound shapes.',
+    pages: [
+      {
+        heading:'Understanding Prisms',
+        content:`
+          <p>A <strong>prism</strong> is a 3D shape with a constant cross-section throughout its length. Cut through it at any point and you get the same shape.</p>
+          <ul>
+            <li>A <strong>cuboid</strong> is a rectangular prism</li>
+            <li>A <strong>cylinder</strong> is a circular prism</li>
+            <li>A <strong>triangular prism</strong> has a triangular cross-section</li>
+          </ul>
+          <div class="formula-box">Volume of any prism = Area of cross-section × Length</div>
+          <p>This makes prisms very predictable — the hard part is just finding the area of the cross-section, which is always a 2D shape you already know.</p>
+        `
+      },
+      {
+        heading:'Compound Cross-Sections',
+        content:`
+          <p>Some prisms have irregular or compound cross-sections — shapes made from combining simpler shapes. Split them into rectangles, triangles, circles, etc.</p>
+          <div class="example-box">
+            <div class="ex-label">Example: L-shaped cross-section prism (length = 12cm)</div>
+            <p style="margin-top:0.5rem;font-size:0.85rem;">The L-shape can be split into two rectangles: one 6×4 cm and one 3×2 cm.</p>
+            <div class="step"><div class="step-num">1</div><div>Area of rectangle 1: 6 × 4 = 24 cm²</div></div>
+            <div class="step"><div class="step-num">2</div><div>Area of rectangle 2: 3 × 2 = 6 cm²</div></div>
+            <div class="step"><div class="step-num">3</div><div>Total cross-section area = 24 + 6 = 30 cm²</div></div>
+            <div class="step"><div class="step-num">4</div><div>Volume = 30 × 12 = <strong>360 cm³</strong></div></div>
+          </div>
+          <div class="key-fact"><strong>📌 Tip:</strong> You can also find compound areas by subtraction — find the area of the full rectangle, then subtract the missing piece.</div>
+        `
+      },
+      {
+        heading:'Trapezium Cross-Section',
+        content:`
+          <p>A very common prism in exams has a <strong>trapezium</strong> (trapezoid) as its cross-section. Remember the trapezium area formula:</p>
+          <div class="formula-box">Area of trapezium = ½(a + b) × h</div>
+          <p>where a and b are the parallel sides, and h is the perpendicular height between them.</p>
+          <div class="example-box">
+            <div class="ex-label">Example: Trapezoidal prism with a=5, b=9, h=4, length=7cm</div>
+            <div class="step"><div class="step-num">1</div><div>Area of trapezium = ½ × (5 + 9) × 4 = ½ × 14 × 4 = 28 cm²</div></div>
+            <div class="step"><div class="step-num">2</div><div>Volume = 28 × 7 = <strong>196 cm³</strong></div></div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id:'algebra2', title:'Expanding & Factorising',
+    color:'linear-gradient(135deg,#dc2626,#991b1b)',
+    tag:'Algebra', icon:'🔣',
+    desc:'Master expanding double brackets and factorising quadratics and expressions.',
+    pages: [
+      {
+        heading:'Single Bracket Expansion',
+        content:`
+          <p>To expand a single bracket, multiply everything inside by the term outside:</p>
+          <div class="formula-box">a(b + c) = ab + ac</div>
+          <div class="example-box">
+            <div class="ex-label">Examples</div>
+            <div class="step"><div class="step-num">1</div><div>3(x + 4) = 3x + 12</div></div>
+            <div class="step"><div class="step-num">2</div><div>−2(x − 5) = −2x + 10</div></div>
+            <div class="step"><div class="step-num">3</div><div>x(2x + 3) = 2x² + 3x</div></div>
+          </div>
+          <div class="key-fact"><strong>⚠️ Watch the signs:</strong> −2 × −5 = +10, not −10. Multiplying two negatives gives a positive!</div>
+        `
+      },
+      {
+        heading:'Expanding Double Brackets (FOIL)',
+        content:`
+          <p>To expand two brackets multiplied together, use <strong>FOIL</strong>: First, Outer, Inner, Last.</p>
+          <div class="formula-box">(a + b)(c + d) = ac + ad + bc + bd</div>
+          <div class="example-box">
+            <div class="ex-label">Expand (x + 3)(x − 2)</div>
+            <div class="step"><div class="step-num">1</div><div>First: x × x = x²</div></div>
+            <div class="step"><div class="step-num">2</div><div>Outer: x × −2 = −2x</div></div>
+            <div class="step"><div class="step-num">3</div><div>Inner: 3 × x = 3x</div></div>
+            <div class="step"><div class="step-num">4</div><div>Last: 3 × −2 = −6</div></div>
+            <div class="step"><div class="step-num">5</div><div>Collect like terms: x² − 2x + 3x − 6 = <strong>x² + x − 6</strong></div></div>
+          </div>
+        `
+      },
+      {
+        heading:'Factorising Quadratics',
+        content:`
+          <p>Factorising is the reverse of expanding. For x² + bx + c, find two numbers that <strong>multiply to give c</strong> and <strong>add to give b</strong>.</p>
+          <div class="example-box">
+            <div class="ex-label">Factorise x² + 7x + 12</div>
+            <div class="step"><div class="step-num">1</div><div>Find two numbers that multiply to 12 and add to 7</div></div>
+            <div class="step"><div class="step-num">2</div><div>Pairs for 12: (1,12), (2,6), (3,4) ← 3+4=7 ✓</div></div>
+            <div class="step"><div class="step-num">3</div><div>Answer: <strong>(x + 3)(x + 4)</strong></div></div>
+          </div>
+          <div class="example-box">
+            <div class="ex-label">Factorise x² − x − 6</div>
+            <div class="step"><div class="step-num">1</div><div>Need two numbers: multiply to −6, add to −1</div></div>
+            <div class="step"><div class="step-num">2</div><div>Try (−3) and (+2): −3 × 2 = −6 ✓ and −3 + 2 = −1 ✓</div></div>
+            <div class="step"><div class="step-num">3</div><div>Answer: <strong>(x − 3)(x + 2)</strong></div></div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id:'percentages2', title:'Percentage Change & Reverse',
+    color:'linear-gradient(135deg,#0891b2,#164e63)',
+    tag:'Number', icon:'%',
+    desc:'Percentage increase/decrease, percentage change, and reverse percentage problems.',
+    pages: [
+      {
+        heading:'Percentage Increase & Decrease',
+        content:`
+          <p>To increase or decrease a value by a percentage, use a <strong>multiplier</strong>.</p>
+          <div class="formula-box">Multiplier = 1 + (percentage/100) for increase<br>Multiplier = 1 − (percentage/100) for decrease</div>
+          <div class="example-box">
+            <div class="ex-label">Increase £320 by 15%</div>
+            <div class="step"><div class="step-num">1</div><div>Multiplier = 1 + 0.15 = 1.15</div></div>
+            <div class="step"><div class="step-num">2</div><div>£320 × 1.15 = <strong>£368</strong></div></div>
+          </div>
+          <div class="example-box">
+            <div class="ex-label">Decrease 240 by 30%</div>
+            <div class="step"><div class="step-num">1</div><div>Multiplier = 1 − 0.30 = 0.70</div></div>
+            <div class="step"><div class="step-num">2</div><div>240 × 0.70 = <strong>168</strong></div></div>
+          </div>
+        `
+      },
+      {
+        heading:'Percentage Change',
+        content:`
+          <p>To find how much something has changed as a percentage:</p>
+          <div class="formula-box">% Change = (Change ÷ Original) × 100</div>
+          <div class="example-box">
+            <div class="ex-label">A phone costs £400. It's now £460. What is the percentage increase?</div>
+            <div class="step"><div class="step-num">1</div><div>Change = 460 − 400 = £60</div></div>
+            <div class="step"><div class="step-num">2</div><div>% change = (60 ÷ 400) × 100 = <strong>15%</strong></div></div>
+          </div>
+          <div class="key-fact"><strong>📌 Remember:</strong> Always divide by the <em>original</em> value, not the new one. This is a common mistake.</div>
+        `
+      },
+      {
+        heading:'Reverse Percentages',
+        content:`
+          <p>If you're given the value <em>after</em> a percentage change and need to find the original, divide by the multiplier.</p>
+          <div class="formula-box">Original = New Value ÷ Multiplier</div>
+          <div class="example-box">
+            <div class="ex-label">After a 20% increase, a price is £180. What was the original price?</div>
+            <div class="step"><div class="step-num">1</div><div>The multiplier was 1.20 (20% increase)</div></div>
+            <div class="step"><div class="step-num">2</div><div>Original = 180 ÷ 1.20 = <strong>£150</strong></div></div>
+          </div>
+          <div class="example-box">
+            <div class="ex-label">After a 15% discount, a coat costs £85. What was the original price?</div>
+            <div class="step"><div class="step-num">1</div><div>Multiplier = 1 − 0.15 = 0.85</div></div>
+            <div class="step"><div class="step-num">2</div><div>Original = 85 ÷ 0.85 = <strong>£100</strong></div></div>
+          </div>
+          <div class="key-fact"><strong>⚠️ Don't just subtract 20% from £180 to get the original — that gives the wrong answer!</strong></div>
+        `
+      }
+    ]
+  },
+  {
+    id:'sequences', title:'Sequences & nth Term',
+    color:'linear-gradient(135deg,#be185d,#831843)',
+    tag:'Algebra', icon:'🔢',
+    desc:'Arithmetic sequences, nth term rules, geometric sequences and quadratic sequences.',
+    pages: [
+      {
+        heading:'Arithmetic Sequences',
+        content:`
+          <p>An <strong>arithmetic sequence</strong> (also called a linear sequence) increases or decreases by the same amount each time. This constant difference is called the <strong>common difference</strong> (d).</p>
+          <p>Examples: 3, 7, 11, 15, 19… (d = +4) and 20, 15, 10, 5… (d = −5)</p>
+          <div class="formula-box">nth term = dn + (a − d)</div>
+          <p>where d = common difference and a = first term</p>
+          <div class="example-box">
+            <div class="ex-label">Find the nth term of 5, 8, 11, 14…</div>
+            <div class="step"><div class="step-num">1</div><div>Common difference d = 8 − 5 = 3</div></div>
+            <div class="step"><div class="step-num">2</div><div>First term a = 5</div></div>
+            <div class="step"><div class="step-num">3</div><div>nth term = 3n + (5 − 3) = <strong>3n + 2</strong></div></div>
+            <div class="step"><div class="step-num">4</div><div>Check: when n=1, 3(1)+2=5 ✓; n=2, 3(2)+2=8 ✓</div></div>
+          </div>
+        `
+      },
+      {
+        heading:'Using the nth Term',
+        content:`
+          <p>Once you have the nth term, you can find any term in the sequence and check if a number is in the sequence.</p>
+          <div class="example-box">
+            <div class="ex-label">nth term = 4n − 1. Is 79 in this sequence?</div>
+            <div class="step"><div class="step-num">1</div><div>Set 4n − 1 = 79</div></div>
+            <div class="step"><div class="step-num">2</div><div>4n = 80</div></div>
+            <div class="step"><div class="step-num">3</div><div>n = 20 ← a whole number, so <strong>yes, 79 is the 20th term</strong></div></div>
+          </div>
+          <div class="example-box">
+            <div class="ex-label">Is 50 in the sequence with nth term = 3n + 2?</div>
+            <div class="step"><div class="step-num">1</div><div>3n + 2 = 50 → 3n = 48 → n = 16</div></div>
+            <div class="step"><div class="step-num">2</div><div>n = 16 is a whole number, so <strong>yes, 50 is in the sequence</strong></div></div>
+          </div>
+          <div class="key-fact"><strong>📌 Rule:</strong> If n comes out as a whole number, the value is in the sequence. If it's a fraction or decimal, it isn't.</div>
+        `
+      },
+      {
+        heading:'Geometric & Quadratic Sequences',
+        content:`
+          <h3>Geometric Sequences</h3>
+          <p>In a geometric sequence, each term is multiplied by a fixed <strong>common ratio</strong> (r).</p>
+          <p>Example: 2, 6, 18, 54… (r = 3)</p>
+          <div class="example-box">
+            <div class="ex-label">Find the next term: 5, 10, 20, 40…</div>
+            <div class="step"><div class="step-num">1</div><div>Common ratio r = 10 ÷ 5 = 2</div></div>
+            <div class="step"><div class="step-num">2</div><div>Next term = 40 × 2 = <strong>80</strong></div></div>
+          </div>
+          <h3>Quadratic Sequences</h3>
+          <p>Quadratic sequences have a <strong>second difference</strong> that is constant. Their nth term includes an n² term.</p>
+          <div class="example-box">
+            <div class="ex-label">Sequence: 1, 4, 9, 16, 25…</div>
+            <p style="margin-top:0.4rem;font-size:0.85rem;">1st differences: 3, 5, 7, 9… (not constant)<br>2nd differences: 2, 2, 2… (constant!) → it's quadratic<br>nth term = <strong>n²</strong></p>
+          </div>
+        `
+      }
+    ]
+  }
+];
+
+let currentLesson = null;
+let currentPage = 0;
+
+function buildLessonGrid() {
+  const grid = document.getElementById('lessonGrid');
+  grid.innerHTML = '';
+  LESSONS.forEach(lesson => {
+    const card = document.createElement('div');
+    card.className = 'lesson-card';
+    card.onclick = () => openLesson(lesson.id);
+    card.innerHTML = `
+      <div class="lesson-card-header" style="background:${lesson.color}">
+        <span style="font-size:1.8rem;display:block;margin-bottom:0.5rem;">${lesson.icon}</span>
+        ${lesson.title}
+      </div>
+      <div class="lesson-card-body">
+        <p>${lesson.desc}</p>
+        <span class="lesson-tag">${lesson.tag} • ${lesson.pages.length} pages</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function openLesson(id) {
+  currentLesson = LESSONS.find(l => l.id === id);
+  currentPage = 0;
+  renderLessonPage();
+  showView('lesson');
+  document.getElementById('lessonContentTitle').textContent = currentLesson.title;
+}
+
+function renderLessonPage() {
+  const page = currentLesson.pages[currentPage];
+  const total = currentLesson.pages.length;
+  const dots = currentLesson.pages.map((p, i) => `<div class="progress-dot ${i < currentPage ? 'done' : i === currentPage ? 'current' : ''}"></div>`).join('');
+  document.getElementById('lessonBody').innerHTML = `
+    <h2>${page.heading}</h2>
+    ${page.content}
+    <div class="lesson-nav">
+      <button class="lesson-nav-btn secondary" onclick="lessonPage(${currentPage - 1})" ${currentPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Previous</button>
+      <div class="progress-dots">${dots}</div>
+      ${currentPage < total - 1
+        ? `<button class="lesson-nav-btn primary" onclick="lessonPage(${currentPage + 1})">Next →</button>`
+        : `<button class="lesson-nav-btn primary" onclick="showView('lessons')">✓ Complete</button>`
+      }
+    </div>
+  `;
+  window.scrollTo(0, 0);
+}
+
+function lessonPage(n) {
+  if(n < 0 || n >= currentLesson.pages.length) return;
+  currentPage = n;
+  renderLessonPage();
+}
+
+// ══════════════════════════════
+//  CALCULATORS
+// ══════════════════════════════
+function switchCalc(name, btn) {
+  document.getElementById('calcPythagoras').style.display = name === 'pythagoras' ? 'block' : 'none';
+  document.getElementById('calcVolume').style.display = name === 'volume' ? 'block' : 'none';
+  document.querySelectorAll('.calc-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function calcPythagoras() {
+  const a = parseFloat(document.getElementById('pyA').value);
+  const b = parseFloat(document.getElementById('pyB').value);
+  const c = parseFloat(document.getElementById('pyC').value);
+  const res = document.getElementById('pyResult');
+  const err = document.getElementById('pyError');
+  res.style.display = 'none'; err.style.display = 'none';
+
+  const known = [!isNaN(a) && a > 0, !isNaN(b) && b > 0, !isNaN(c) && c > 0];
+  const knownCount = known.filter(Boolean).length;
+
+  if(knownCount < 2) { err.textContent = 'Please enter at least two sides.'; err.style.display='block'; return; }
+  if(knownCount === 3) { err.textContent = 'You only need to enter two sides — leave one blank.'; err.style.display='block'; return; }
+
+  let answer, working;
+  if(!known[2]) { // find c
+    const result = Math.sqrt(a*a + b*b);
+    working = `c = √(a² + b²) = √(${a}² + ${b}²) = √(${a*a} + ${b*b}) = √${a*a+b*b}`;
+    answer = `c = ${result.toFixed(4).replace(/\.?0+$/, '')} (exact: √${a*a+b*b})`;
+  } else if(!known[1]) { // find b
+    if(c <= a) { err.textContent = 'The hypotenuse c must be longer than side a.'; err.style.display='block'; return; }
+    const result = Math.sqrt(c*c - a*a);
+    working = `b = √(c² − a²) = √(${c}² − ${a}²) = √(${c*c} − ${a*a}) = √${c*c-a*a}`;
+    answer = `b = ${result.toFixed(4).replace(/\.?0+$/, '')}`;
+  } else { // find a
+    if(c <= b) { err.textContent = 'The hypotenuse c must be longer than side b.'; err.style.display='block'; return; }
+    const result = Math.sqrt(c*c - b*b);
+    working = `a = √(c² − b²) = √(${c}² − ${b}²) = √(${c*c} − ${b*b}) = √${c*c-b*b}`;
+    answer = `a = ${result.toFixed(4).replace(/\.?0+$/, '')}`;
+  }
+
+  res.innerHTML = `<div style="font-size:0.75rem;color:#15803d;margin-bottom:0.5rem;letter-spacing:0.05em;font-family:'Inter',sans-serif;">WORKING</div>
+    <div style="font-size:0.9rem;color:#166534;margin-bottom:0.75rem;font-family:'Inter',sans-serif;">${working}</div>
+    <div style="font-size:1.3rem;">✅ ${answer}</div>`;
+  res.style.display = 'block';
+}
+
+function clearPythagoras() {
+  ['pyA','pyB','pyC'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('pyResult').style.display='none';
+  document.getElementById('pyError').style.display='none';
+}
+
+let currentShape = 'cuboid';
+const SHAPES = {
+  cuboid: { fields:[{id:'vL',label:'Length (l)'},{id:'vW',label:'Width (w)'},{id:'vH',label:'Height (h)'}], formula:'V = l × w × h' },
+  cylinder: { fields:[{id:'vR',label:'Radius (r)'},{id:'vH',label:'Height (h)'}], formula:'V = πr²h' },
+  cone: { fields:[{id:'vR',label:'Radius (r)'},{id:'vH',label:'Height (h)'}], formula:'V = ⅓πr²h' },
+  sphere: { fields:[{id:'vR',label:'Radius (r)'}], formula:'V = 4/3 × πr³' },
+  triangularprism: { fields:[{id:'vB',label:'Triangle base (b)'},{id:'vTH',label:'Triangle height (h)'},{id:'vL',label:'Prism length (l)'}], formula:'V = ½ × b × h × l' },
+  pyramid: { fields:[{id:'vS',label:'Base side (s)'},{id:'vH',label:'Height (h)'}], formula:'V = ⅓ × s² × h' },
+};
+
+function selectShape(name, btn) {
+  currentShape = name;
+  document.querySelectorAll('.vol-shape-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderVolInputs();
+  document.getElementById('volResult').style.display='none';
+  document.getElementById('volError').style.display='none';
+}
+
+function renderVolInputs() {
+  const shape = SHAPES[currentShape];
+  document.getElementById('volInputs').innerHTML = `
+    <div class="formula-box" style="margin-bottom:1.5rem;">${shape.formula}</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem;">
+      ${shape.fields.map(f => `
+        <div class="calc-field">
+          <label>${f.label}</label>
+          <input class="calc-input" type="number" id="${f.id}" placeholder="0" min="0" step="any" />
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+function initVolume() {
+  renderVolInputs();
+}
+
+function getVal(id) {
+  const el = document.getElementById(id);
+  if(!el) return NaN;
+  return parseFloat(el.value);
+}
+
+function calcVolume() {
+  const res = document.getElementById('volResult');
+  const err = document.getElementById('volError');
+  res.style.display='none'; err.style.display='none';
+  let v, working;
+  try {
+    switch(currentShape) {
+      case 'cuboid': {
+        const l=getVal('vL'),w=getVal('vW'),h=getVal('vH');
+        if([l,w,h].some(isNaN)||[l,w,h].some(x=>x<=0)) throw 'Enter positive values for length, width and height.';
+        v=l*w*h; working=`V = ${l} × ${w} × ${h} = ${v}`; break;
+      }
+      case 'cylinder': {
+        const r=getVal('vR'),h=getVal('vH');
+        if([r,h].some(isNaN)||[r,h].some(x=>x<=0)) throw 'Enter positive radius and height.';
+        v=Math.PI*r*r*h; working=`V = π × ${r}² × ${h} = π × ${r*r} × ${h} = ${(Math.PI*r*r*h).toFixed(4)}`; break;
+      }
+      case 'cone': {
+        const r=getVal('vR'),h=getVal('vH');
+        if([r,h].some(isNaN)||[r,h].some(x=>x<=0)) throw 'Enter positive radius and height.';
+        v=(1/3)*Math.PI*r*r*h; working=`V = ⅓ × π × ${r}² × ${h} = ⅓ × π × ${r*r} × ${h}`; break;
+      }
+      case 'sphere': {
+        const r=getVal('vR');
+        if(isNaN(r)||r<=0) throw 'Enter a positive radius.';
+        v=(4/3)*Math.PI*r*r*r; working=`V = 4/3 × π × ${r}³ = 4/3 × π × ${r*r*r}`; break;
+      }
+      case 'triangularprism': {
+        const b=getVal('vB'),th=getVal('vTH'),l=getVal('vL');
+        if([b,th,l].some(isNaN)||[b,th,l].some(x=>x<=0)) throw 'Enter positive values for all dimensions.';
+        v=0.5*b*th*l; working=`V = ½ × ${b} × ${th} × ${l} = ½ × ${b*th*l} = ${v}`; break;
+      }
+      case 'pyramid': {
+        const s=getVal('vS'),h=getVal('vH');
+        if([s,h].some(isNaN)||[s,h].some(x=>x<=0)) throw 'Enter positive base side and height.';
+        v=(1/3)*s*s*h; working=`V = ⅓ × ${s}² × ${h} = ⅓ × ${s*s} × ${h}`; break;
+      }
+    }
+    res.innerHTML = `<div style="font-size:0.75rem;color:#15803d;margin-bottom:0.5rem;font-family:'Inter',sans-serif;">WORKING</div>
+      <div style="font-size:0.88rem;color:#166534;margin-bottom:0.75rem;font-family:'Inter',sans-serif;">${working}</div>
+      <div style="font-size:1.3rem;">✅ Volume = ${v.toFixed(2)} units³</div>`;
+    res.style.display='block';
+  } catch(e) {
+    err.textContent = typeof e === 'string' ? e : 'Check your inputs.';
+    err.style.display = 'block';
+  }
+}
+
+function clearVolume() {
+  document.querySelectorAll('#volInputs input').forEach(i=>i.value='');
+  document.getElementById('volResult').style.display='none';
+  document.getElementById('volError').style.display='none';
+}
+
+// ══════════════════════════════
+//  QUIZ
+// ══════════════════════════════
+const QUIZ_QUESTIONS = [
+  { q:'A right-angled triangle has sides a = 5 and b = 12. What is the hypotenuse?', opts:['13','14','11','17'], correct:0, explanation:'c = √(5² + 12²) = √(25 + 144) = √169 = 13. This is the famous 5-12-13 Pythagorean triple.' },
+  { q:'What is the volume of a cylinder with radius 4cm and height 10cm? (Use π ≈ 3.14)', opts:['502.4 cm³','160 cm³','251.2 cm³','80 cm³'], correct:0, explanation:'V = πr²h = 3.14 × 4² × 10 = 3.14 × 16 × 10 = 502.4 cm³' },
+  { q:'Expand and simplify: (x + 5)(x − 3)', opts:['x² + 2x − 15','x² − 15','x² + 8x − 15','x² + 2x + 15'], correct:0, explanation:'FOIL: x² − 3x + 5x − 15 = x² + 2x − 15' },
+  { q:'A price increases from £80 to £92. What is the percentage increase?', opts:['15%','12%','10%','14.5%'], correct:0, explanation:'Change = 92 − 80 = £12. % change = (12 ÷ 80) × 100 = 15%' },
+  { q:'What is the nth term of the sequence: 2, 5, 8, 11, 14…?', opts:['3n − 1','2n + 1','3n + 1','n + 3'], correct:0, explanation:'Common difference = 3, so starts with 3n. First term (n=1): 3(1) + ? = 2, so ? = −1. nth term = 3n − 1.' },
+  { q:'A cuboid is 6cm × 4cm × 3cm. What is its surface area?', opts:['108 cm²','72 cm²','120 cm²','84 cm²'], correct:0, explanation:'SA = 2(6×4 + 6×3 + 4×3) = 2(24 + 18 + 12) = 2 × 54 = 108 cm²' },
+  { q:'After a 25% discount, a jacket costs £60. What was the original price?', opts:['£80','£75','£85','£72'], correct:0, explanation:'Multiplier = 0.75. Original = 60 ÷ 0.75 = £80.' },
+  { q:'A cone has radius 3cm and height 4cm. What is its volume? (π ≈ 3.14)', opts:['37.68 cm³','113.04 cm³','18.84 cm³','56.52 cm³'], correct:0, explanation:'V = ⅓ × π × r² × h = ⅓ × 3.14 × 9 × 4 = ⅓ × 113.04 = 37.68 cm³' },
+  { q:'Factorise: x² + 6x + 8', opts:['(x + 2)(x + 4)','(x + 3)(x + 3)','(x + 1)(x + 8)','(x + 4)(x + 4)'], correct:0, explanation:'Find two numbers multiplying to 8 and adding to 6: 2 and 4. So (x+2)(x+4).' },
+  { q:'What is the volume of a sphere with radius 3cm? (Give answer to 2 d.p.)', opts:['113.10 cm³','28.27 cm³','56.55 cm³','339.29 cm³'], correct:0, explanation:'V = 4/3 × π × r³ = 4/3 × π × 27 = 36π ≈ 113.10 cm³' },
+];
+
+let quizDeck = [], quizIndex = 0, quizScore = 0, quizAnswered = false;
+
+function startQuiz() {
+  quizDeck = [...QUIZ_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 10);
+  quizIndex = 0; quizScore = 0;
+  document.getElementById('quizStart').style.display = 'none';
+  document.getElementById('quizScore').style.display = 'none';
+  document.getElementById('quizCard').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  quizAnswered = false;
+  const q = quizDeck[quizIndex];
+  document.getElementById('quizProgress').textContent = `Question ${quizIndex + 1} of ${quizDeck.length}`;
+  document.getElementById('quizQuestion').textContent = q.q;
+  const opts = document.getElementById('quizOptions');
+  opts.innerHTML = '';
+  // shuffle options while keeping track of correct one
+  const shuffled = q.opts.map((o, i) => ({text: o, isCorrect: i === q.correct})).sort(() => Math.random() - 0.5);
+  shuffled.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.textContent = opt.text;
+    btn.dataset.correct = opt.isCorrect;
+    btn.onclick = () => answerQuestion(btn, opt.isCorrect, q.explanation);
+    opts.appendChild(btn);
+  });
+  document.getElementById('quizFeedback').style.display = 'none';
+  document.getElementById('quizNext').style.display = 'none';
+}
+
+function answerQuestion(btn, isCorrect, explanation) {
+  if(quizAnswered) return;
+  quizAnswered = true;
+  if(isCorrect) quizScore++;
+  document.querySelectorAll('.quiz-option').forEach(b => {
+    b.disabled = true;
+    if(b.dataset.correct === 'true') b.classList.add('correct');
+    else if(b === btn && !isCorrect) b.classList.add('wrong');
+  });
+  const fb = document.getElementById('quizFeedback');
+  fb.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = (isCorrect ? '✅ Correct! ' : '❌ Incorrect. ') + explanation;
+  fb.style.display = 'block';
+  document.getElementById('quizNext').style.display = 'block';
+}
+
+function nextQuestion() {
+  quizIndex++;
+  if(quizIndex >= quizDeck.length) {
+    showQuizResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showQuizResult() {
+  document.getElementById('quizCard').style.display = 'none';
+  const pct = Math.round((quizScore / quizDeck.length) * 100);
+  let emoji = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '👍' : '💪';
+  document.getElementById('scoreEmoji').textContent = emoji;
+  document.getElementById('scoreBadge').textContent = `${quizScore} / ${quizDeck.length}`;
+  document.getElementById('scoreSub').textContent = pct >= 80 ? `Excellent work — ${pct}%! You're well on track.` : pct >= 60 ? `Good effort — ${pct}%. Review any topics you struggled with.` : `${pct}% — Keep practising! Check the lessons for topics you found tricky.`;
+  document.getElementById('quizScore').style.display = 'block';
+}
+
+// ══════════════════════════════
+//  ARCADE
+// ══════════════════════════════
+const PASSWORD_ARCADE = 'arcade2024';
+
 const POSTS = [
   { date:'2026-03-09', tag:'NEW GAME',    title:'Pong and Fruit Slicer!',             body:'Pong has launched, and Fruit Slicer has received an update! Check them out!',                                                                                                   accent:'#88ff44' },
   { date:'2026-03-09', tag:'COMING SOON', title:'Tetris & Pong are in development',   body:'Two classics are on the way. Tetris is being built from scratch with a ghost-piece and hold mechanic. Pong will support both 1-player (vs CPU) and 2-player on the same keyboard.', accent:'#44aaff' },
@@ -756,9 +1776,6 @@ const POSTS = [
   { date:'2026-03-09', tag:'LAUNCH',      title:'Arcade is open!',                   body:'Snake, Breakout, Asteroids and Minesweeper are all live. More games dropping regularly — check back soon.',                                                                     accent:'#00ff88' },
 ];
 
-// ══════════════════════════════
-//  GAME REGISTRY
-// ══════════════════════════════
 const GAMES = [
   { title:'SNAKE',        desc:"Navigate the grid. Eat the fruit. Don't bite yourself.",       icon:'🐍', accent:'#00ff88', url:'snake/index.html',       keys:['WASD','↑↓←→'],        badge:'PLAY',     locked:false },
   { title:'BREAKOUT',     desc:"Smash every brick. Don't let the ball drop.",                  icon:'🔴', accent:'#ff4466', url:'breakout/index.html',    keys:['←→','SPC'],           badge:'PLAY',     locked:false },
@@ -776,65 +1793,71 @@ const GAMES = [
 ];
 
 function showLauncher() {
-  document.getElementById('mathsScreen').style.display='none';
+  document.getElementById('mathsScreen').style.display = 'none';
   document.body.classList.add('arcade-mode');
-  document.title='ARCADE — Game Launcher';
-  const el=document.getElementById('launcher');
-  el.style.display='block';
-  buildGrid(); buildDevlog();
+  document.title = 'ARCADE — Game Launcher';
+  const el = document.getElementById('launcher');
+  el.style.display = 'block';
+  if(!el.dataset.built) { buildGrid(); buildDevlog(); el.dataset.built='1'; }
+}
+
+function exitArcade() {
+  document.body.classList.remove('arcade-mode');
+  document.getElementById('launcher').style.display = 'none';
+  document.getElementById('mathsScreen').style.display = 'block';
+  document.title = 'MathsZone — Interactive Learning';
 }
 
 function buildGrid() {
-  const grid=document.getElementById('grid'); let available=0;
-  GAMES.forEach(game=>{
+  const grid = document.getElementById('grid'); let available = 0;
+  GAMES.forEach(game => {
     if(!game.locked) available++;
-    const card=document.createElement(game.locked?'div':'a');
-    if(!game.locked) card.href=game.url;
-    card.className='game-card'+(game.locked?' locked':'');
-    card.style.setProperty('--accent',game.accent);
-    card.innerHTML=`
+    const card = document.createElement(game.locked ? 'div' : 'a');
+    if(!game.locked) card.href = game.url;
+    card.className = 'game-card' + (game.locked ? ' locked' : '');
+    card.style.setProperty('--accent', game.accent);
+    card.innerHTML = `
       <div class="card-preview">
         <span class="card-icon">${game.icon}</span>
-        ${!game.locked?`<div class="card-play">▶ PLAY</div>`:''}
-        <div class="card-badge ${game.locked?'coming-soon':''}">${game.badge}</div>
+        ${!game.locked ? `<div class="card-play">▶ PLAY</div>` : ''}
+        <div class="card-badge ${game.locked ? 'coming-soon' : ''}">${game.badge}</div>
       </div>
       <div class="card-body">
         <div class="card-title">${game.title}</div>
         <div class="card-desc">${game.desc}</div>
         <div class="card-meta">
-          <div class="card-keys">${game.keys.map(k=>`<span class="key">${k}</span>`).join('')}</div>
-          <span>${game.locked?'LOCKED':'READY'}</span>
+          <div class="card-keys">${game.keys.map(k => `<span class="key">${k}</span>`).join('')}</div>
+          <span>${game.locked ? 'LOCKED' : 'READY'}</span>
         </div>
       </div>`;
     grid.appendChild(card);
   });
-  document.getElementById('availCount').textContent=available;
+  document.getElementById('availCount').textContent = available;
 }
 
 function buildDevlog() {
-  const container=document.getElementById('devlog');
-  if(!POSTS.length){container.innerHTML='<div class="devlog-empty">NO POSTS YET — CHECK BACK SOON</div>';return;}
-  POSTS.forEach((post,i)=>{
-    const el=document.createElement('div');
-    el.className='devlog-post';
-    el.style.setProperty('--post-accent',post.accent||'var(--green)');
-    el.style.animationDelay=`${0.05+i*0.07}s`;
-    el.innerHTML=`
+  const container = document.getElementById('devlog');
+  if(!POSTS.length) { container.innerHTML = '<div class="devlog-empty">NO POSTS YET — CHECK BACK SOON</div>'; return; }
+  POSTS.forEach((post, i) => {
+    const el = document.createElement('div');
+    el.className = 'devlog-post';
+    el.style.setProperty('--post-accent', post.accent || 'var(--green)');
+    el.style.animationDelay = `${0.05 + i * 0.07}s`;
+    el.innerHTML = `
       <div class="devlog-meta">
-        <span class="devlog-date">${post.date||''}</span>
-        ${post.tag?`<span class="devlog-tag">${post.tag}</span>`:''}
+        <span class="devlog-date">${post.date || ''}</span>
+        ${post.tag ? `<span class="devlog-tag">${post.tag}</span>` : ''}
       </div>
       <div class="devlog-content">
-        <div class="devlog-title">${post.title||''}</div>
-        <div class="devlog-body">${(post.body||'').replace(/\n/g,'<br>')}</div>
+        <div class="devlog-title">${post.title || ''}</div>
+        <div class="devlog-body">${(post.body || '').replace(/\n/g, '<br>')}</div>
       </div>`;
     container.appendChild(el);
   });
 }
 
-// ── Boot ──
-updateLockUI();
-document.getElementById('mEmail').focus();
+// ── Boot: auto show home ──
+showView('home');
 </script>
 </body>
 </html>
