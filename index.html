@@ -517,6 +517,32 @@ footer.arcade-footer {
   background:var(--m-blue); transform:scaleX(0); transition:transform 0.2s;
 }
 .m-footer-links a.hidden-arcade-link:hover::after { transform:scaleX(1); }
+
+/* ─── GAME IFRAME OVERLAY ─── */
+#gameOverlay {
+  display:none; position:fixed; inset:0; z-index:500;
+  background:#000; flex-direction:column;
+}
+#gameOverlay.open { display:flex; }
+#gameFrame {
+  width:100%; flex:1; border:none;
+}
+.game-overlay-bar {
+  height:44px; background:#0d0d1a; border-bottom:1px solid rgba(0,255,136,0.2);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 1rem; flex-shrink:0;
+}
+.game-overlay-title {
+  font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:0.2em;
+  color:rgba(0,255,136,0.7);
+}
+.game-overlay-back {
+  background:transparent; border:1px solid rgba(0,255,136,0.3);
+  color:rgba(0,255,136,0.7); font-family:'Orbitron',sans-serif;
+  font-size:0.6rem; letter-spacing:0.15em; padding:5px 14px;
+  cursor:pointer; transition:all 0.2s;
+}
+.game-overlay-back:hover { border-color:#ff4466; color:#ff4466; }
 </style>
 </head>
 <body>
@@ -831,6 +857,15 @@ footer.arcade-footer {
       </div>
     </div>
   </div>
+</div>
+
+<!-- ─── GAME IFRAME OVERLAY ─── -->
+<div id="gameOverlay">
+  <div class="game-overlay-bar">
+    <span class="game-overlay-title" id="gameOverlayTitle">GAME</span>
+    <button class="game-overlay-back" onclick="closeGame()">← BACK TO ARCADE</button>
+  </div>
+  <iframe id="gameFrame" src="" allowfullscreen></iframe>
 </div>
 
 <!-- ─── ARCADE ─── -->
@@ -1885,7 +1920,7 @@ function buildGrid() {
   GAMES.forEach(game => {
     if(!game.locked) available++;
     const card = document.createElement(game.locked ? 'div' : 'a');
-    if(!game.locked) { card.href = game.url + '?from=arcade'; card.target = '_blank'; card.rel = 'noopener'; }
+    if(!game.locked) { card.href = '#'; card.onclick = (e) => { e.preventDefault(); openGame(game.url, game.title); }; }
     card.className = 'game-card' + (game.locked ? ' locked' : '');
     card.style.setProperty('--accent', game.accent);
     card.innerHTML = `
@@ -1928,13 +1963,21 @@ function buildDevlog() {
   });
 }
 
-// ── Boot ──
-if(new URLSearchParams(window.location.search).get('from') === 'arcade') {
-  // Opened from a game tab — go straight to arcade launcher (already authed)
-  showLauncher();
-} else {
-  showView('home');
+
+function openGame(url, title) {
+  const overlay = document.getElementById('gameOverlay');
+  document.getElementById('gameFrame').src = url;
+  document.getElementById('gameOverlayTitle').textContent = title;
+  overlay.classList.add('open');
 }
+function closeGame() {
+  const overlay = document.getElementById('gameOverlay');
+  overlay.classList.remove('open');
+  document.getElementById('gameFrame').src = '';
+}
+
+// ── Boot: auto show home ──
+showView('home');
 </script>
 </body>
 </html>
